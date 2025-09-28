@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.*;
 
 /**
  * Tests for Exercise 1: IO and File Processing
@@ -69,57 +69,72 @@ class Exercise1Test {
         @Test
         @DisplayName("Should parse valid employee line correctly")
         void shouldParseValidEmployeeLine() {
+            // Given
             String validLine = "Emp 42 \"John Doe\"";
 
+            // When
             Optional<Exercise1.Employee> result = Exercise1.parseEmployee(validLine);
 
-            assertTrue(result.isPresent());
+            // Then
+            assertThat(result).isPresent();
             Exercise1.Employee employee = result.get();
-            assertEquals(42, employee.getId());
-            assertEquals("John Doe", employee.getName());
+            assertThat(employee.getId()).isEqualTo(42);
+            assertThat(employee.getName()).isEqualTo("John Doe");
         }
 
         @Test
         @DisplayName("Should handle employee names with special characters")
         void shouldHandleSpecialCharacters() {
+            // Given
             String specialLine = "Emp 123 \"Mary O'Connor-Smith\"";
 
+            // When
             Optional<Exercise1.Employee> result = Exercise1.parseEmployee(specialLine);
 
-            assertTrue(result.isPresent());
+            // Then
+            assertThat(result).isPresent();
             Exercise1.Employee employee = result.get();
-            assertEquals(123, employee.getId());
-            assertEquals("Mary O'Connor-Smith", employee.getName());
+            assertThat(employee.getId()).isEqualTo(123);
+            assertThat(employee.getName()).isEqualTo("Mary O'Connor-Smith");
         }
 
         @Test
         @DisplayName("Should return empty for invalid employee line")
         void shouldReturnEmptyForInvalidLine() {
+            // Given
             String invalidLine = "Invalid employee data";
 
+            // When
             Optional<Exercise1.Employee> result = Exercise1.parseEmployee(invalidLine);
 
-            assertFalse(result.isPresent());
+            // Then
+            assertThat(result).isEmpty();
         }
 
         @Test
         @DisplayName("Should handle malformed employee ID")
         void shouldHandleMalformedId() {
+            // Given
             String malformedLine = "Emp abc \"John Doe\"";
 
+            // When
             Optional<Exercise1.Employee> result = Exercise1.parseEmployee(malformedLine);
 
-            assertFalse(result.isPresent());
+            // Then
+            assertThat(result).isEmpty();
         }
 
         @Test
         @DisplayName("Should handle missing quotes in name")
         void shouldHandleMissingQuotes() {
+            // Given
             String noQuotesLine = "Emp 42 John Doe";
 
+            // When
             Optional<Exercise1.Employee> result = Exercise1.parseEmployee(noQuotesLine);
 
-            assertFalse(result.isPresent());
+            // Then
+            assertThat(result).isEmpty();
         }
     }
 
@@ -130,47 +145,65 @@ class Exercise1Test {
         @Test
         @DisplayName("Should read and parse employees from file")
         void shouldReadEmployeesFromFile() throws IOException {
+            // Given
+            // Test file is set up in @BeforeEach with sample employee data
+
+            // When
             List<Exercise1.Employee> employees = Exercise1.readEmployeesFromFile(testFile.toString());
 
-            assertEquals(5, employees.size());
+            // Then
+            assertThat(employees).hasSize(5);
 
             // Check first employee
             Exercise1.Employee first = employees.get(0);
-            assertEquals(1, first.getId());
-            assertEquals("John Doe", first.getName());
+            assertThat(first.getId()).isEqualTo(1);
+            assertThat(first.getName()).isEqualTo("John Doe");
 
             // Check last employee
             Exercise1.Employee last = employees.get(4);
-            assertEquals(5, last.getId());
-            assertEquals("Charlie Davis", last.getName());
+            assertThat(last.getId()).isEqualTo(5);
+            assertThat(last.getName()).isEqualTo("Charlie Davis");
         }
 
         @Test
         @DisplayName("Should handle empty file gracefully")
         void shouldHandleEmptyFile() throws IOException {
+            // Given
+            // Empty file is set up in @BeforeEach
+
+            // When
             List<Exercise1.Employee> employees = Exercise1.readEmployeesFromFile(emptyFile.toString());
 
-            assertTrue(employees.isEmpty());
+            // Then
+            assertThat(employees).isEmpty();
         }
 
         @Test
         @DisplayName("Should skip malformed lines and parse valid ones")
         void shouldSkipMalformedLines() throws IOException {
+            // Given
+            // Malformed file is set up in @BeforeEach with some invalid lines
+
+            // When
             List<Exercise1.Employee> employees = Exercise1.readEmployeesFromFile(malformedFile.toString());
 
-            assertEquals(2, employees.size());
-            assertEquals(1, employees.get(0).getId());
-            assertEquals("John Doe", employees.get(0).getName());
-            assertEquals(3, employees.get(1).getId());
-            assertEquals("Bob Johnson", employees.get(1).getName());
+            // Then
+            assertThat(employees).hasSize(2);
+            assertThat(employees.get(0).getId()).isEqualTo(1);
+            assertThat(employees.get(0).getName()).isEqualTo("John Doe");
+            assertThat(employees.get(1).getId()).isEqualTo(3);
+            assertThat(employees.get(1).getName()).isEqualTo("Bob Johnson");
         }
 
         @Test
         @DisplayName("Should throw IOException for non-existent file")
         void shouldThrowIOExceptionForNonExistentFile() {
-            assertThrows(IOException.class, () -> {
-                Exercise1.readEmployeesFromFile("non-existent-file.txt");
-            });
+            // Given
+            String nonExistentFile = "non-existent-file.txt";
+
+            // When & Then
+            assertThatThrownBy(() -> Exercise1.readEmployeesFromFile(nonExistentFile))
+                    .isInstanceOf(IOException.class);
         }
     }
 
@@ -188,49 +221,74 @@ class Exercise1Test {
         @Test
         @DisplayName("Should filter employees by ID range")
         void shouldFilterEmployeesByIdRange() {
+            // Given
+            // Sample employees loaded in @BeforeEach
+
+            // When
             List<Exercise1.Employee> filtered = Exercise1.filterEmployeesByIdRange(sampleEmployees, 2, 4);
 
-            assertEquals(3, filtered.size());
-            assertEquals(2, filtered.get(0).getId());
-            assertEquals(3, filtered.get(1).getId());
-            assertEquals(4, filtered.get(2).getId());
+            // Then
+            assertThat(filtered).hasSize(3);
+            assertThat(filtered.get(0).getId()).isEqualTo(2);
+            assertThat(filtered.get(1).getId()).isEqualTo(3);
+            assertThat(filtered.get(2).getId()).isEqualTo(4);
         }
 
         @Test
         @DisplayName("Should map employee names to uppercase")
         void shouldMapEmployeeNamesToUppercase() {
+            // Given
+            // Sample employees loaded in @BeforeEach
+
+            // When
             List<String> upperNames = Exercise1.mapEmployeeNames(sampleEmployees, String::toUpperCase);
 
-            assertEquals(5, upperNames.size());
-            assertEquals("JOHN DOE", upperNames.get(0));
-            assertEquals("JANE SMITH", upperNames.get(1));
-            assertEquals("BOB JOHNSON", upperNames.get(2));
+            // Then
+            assertThat(upperNames).hasSize(5);
+            assertThat(upperNames.get(0)).isEqualTo("JOHN DOE");
+            assertThat(upperNames.get(1)).isEqualTo("JANE SMITH");
+            assertThat(upperNames.get(2)).isEqualTo("BOB JOHNSON");
         }
 
         @Test
         @DisplayName("Should find employee by ID")
         void shouldFindEmployeeById() {
-            Optional<Exercise1.Employee> found = Exercise1.findEmployeeById(sampleEmployees, 3);
+            // Given
+            int targetId = 3;
 
-            assertTrue(found.isPresent());
-            assertEquals(3, found.get().getId());
-            assertEquals("Bob Johnson", found.get().getName());
+            // When
+            Optional<Exercise1.Employee> found = Exercise1.findEmployeeById(sampleEmployees, targetId);
+
+            // Then
+            assertThat(found).isPresent();
+            assertThat(found.get().getId()).isEqualTo(3);
+            assertThat(found.get().getName()).isEqualTo("Bob Johnson");
         }
 
         @Test
         @DisplayName("Should return empty when employee not found")
         void shouldReturnEmptyWhenEmployeeNotFound() {
-            Optional<Exercise1.Employee> found = Exercise1.findEmployeeById(sampleEmployees, 999);
+            // Given
+            int nonExistentId = 999;
 
-            assertFalse(found.isPresent());
+            // When
+            Optional<Exercise1.Employee> found = Exercise1.findEmployeeById(sampleEmployees, nonExistentId);
+
+            // Then
+            assertThat(found).isEmpty();
         }
 
         @Test
         @DisplayName("Should count employees with name containing substring")
         void shouldCountEmployeesWithNameContaining() {
-            long count = Exercise1.countEmployeesWithNameContaining(sampleEmployees, "Jo");
+            // Given
+            String substring = "Jo";
 
-            assertEquals(2, count); // John Doe and Bob Johnson
+            // When
+            long count = Exercise1.countEmployeesWithNameContaining(sampleEmployees, substring);
+
+            // Then
+            assertThat(count).isEqualTo(2); // John Doe and Bob Johnson
         }
     }
 
@@ -241,7 +299,7 @@ class Exercise1Test {
         @Test
         @DisplayName("Should compose IO operations functionally")
         void shouldComposeIOOperations() throws IOException {
-            // Test composition of reading file and processing data
+            // Given
             Function<String, List<Exercise1.Employee>> readAndFilter =
                 filename -> {
                     try {
@@ -252,23 +310,31 @@ class Exercise1Test {
                     }
                 };
 
+            // When
             List<Exercise1.Employee> result = readAndFilter.apply(testFile.toString());
 
-            assertEquals(3, result.size());
-            assertEquals("John Doe", result.get(0).getName());
-            assertEquals("Jane Smith", result.get(1).getName());
-            assertEquals("Bob Johnson", result.get(2).getName());
+            // Then
+            assertThat(result).hasSize(3);
+            assertThat(result.get(0).getName()).isEqualTo("John Doe");
+            assertThat(result.get(1).getName()).isEqualTo("Jane Smith");
+            assertThat(result.get(2).getName()).isEqualTo("Bob Johnson");
         }
 
         @Test
         @DisplayName("Should handle IO operations with error recovery")
         void shouldHandleIOOperationsWithErrorRecovery() {
+            // Given
+            String nonExistentFile = "non-existent-file.txt";
+            String fallbackFile = testFile.toString();
+
+            // When
             List<Exercise1.Employee> result = Exercise1.readEmployeesWithFallback(
-                "non-existent-file.txt",
-                testFile.toString()
+                nonExistentFile,
+                fallbackFile
             );
 
-            assertEquals(5, result.size()); // Should fall back to test file
+            // Then
+            assertThat(result).hasSize(5); // Should fall back to test file
         }
     }
 
@@ -279,26 +345,37 @@ class Exercise1Test {
         @Test
         @DisplayName("Should calculate employee statistics from file")
         void shouldCalculateEmployeeStatistics() throws IOException {
+            // Given
+            // Test file with employee data set up in @BeforeEach
+
+            // When
             Exercise1.EmployeeStats stats = Exercise1.calculateEmployeeStats(testFile.toString());
 
-            assertEquals(5, stats.getTotalCount());
-            assertEquals(1, stats.getMinId());
-            assertEquals(5, stats.getMaxId());
-            assertEquals(3.0, stats.getAverageId(), 0.01);
-            assertTrue(stats.getEmployeeNames().contains("John Doe"));
-            assertTrue(stats.getEmployeeNames().contains("Charlie Davis"));
+            // Then
+            assertThat(stats.getTotalCount()).isEqualTo(5);
+            assertThat(stats.getMinId()).isEqualTo(1);
+            assertThat(stats.getMaxId()).isEqualTo(5);
+            assertThat(stats.getAverageId()).isEqualTo(3.0, within(0.01));
+            assertThat(stats.getEmployeeNames())
+                    .contains("John Doe")
+                    .contains("Charlie Davis");
         }
 
         @Test
         @DisplayName("Should handle empty file for statistics")
         void shouldHandleEmptyFileForStatistics() throws IOException {
+            // Given
+            // Empty file set up in @BeforeEach
+
+            // When
             Exercise1.EmployeeStats stats = Exercise1.calculateEmployeeStats(emptyFile.toString());
 
-            assertEquals(0, stats.getTotalCount());
-            assertEquals(0, stats.getMinId());
-            assertEquals(0, stats.getMaxId());
-            assertEquals(0.0, stats.getAverageId());
-            assertTrue(stats.getEmployeeNames().isEmpty());
+            // Then
+            assertThat(stats.getTotalCount()).isEqualTo(0);
+            assertThat(stats.getMinId()).isEqualTo(0);
+            assertThat(stats.getMaxId()).isEqualTo(0);
+            assertThat(stats.getAverageId()).isEqualTo(0.0);
+            assertThat(stats.getEmployeeNames()).isEmpty();
         }
     }
 }
