@@ -1,9 +1,10 @@
 package info.jab.cis194.homework10;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Exercise 2: Advanced Applicative Patterns - Employee Data Parser
@@ -29,38 +30,96 @@ public class Exercise2 {
         }
 
         default <U> Parser<U> apply(Parser<Function<T, U>> funcParser) {
-            return input -> {
-                Optional<ParseResult<Function<T, U>>> funcResult = funcParser.parse(input);
-                if (funcResult.isEmpty()) {
-                    return Optional.empty();
-                }
-
-                Optional<ParseResult<T>> valueResult = this.parse(funcResult.get().remaining());
-                if (valueResult.isEmpty()) {
-                    return Optional.empty();
-                }
-
-                Function<T, U> func = funcResult.get().value();
-                T value = valueResult.get().value();
-                String remaining = valueResult.get().remaining();
-
-                return Optional.of(new ParseResult<>(func.apply(value), remaining));
-            };
+            return input -> funcParser.parse(input)
+                .flatMap(funcResult -> this.parse(funcResult.remaining())
+                    .map(valueResult -> new ParseResult<>(
+                        funcResult.value().apply(valueResult.value()),
+                        valueResult.remaining())));
         }
 
         default Parser<T> or(Parser<T> other) {
-            return input -> {
-                Optional<ParseResult<T>> result = this.parse(input);
-                if (result.isPresent()) {
-                    return result;
-                }
-                return other.parse(input);
-            };
+            return input -> this.parse(input).or(() -> other.parse(input));
         }
     }
 
     public static <T> Parser<T> pure(T value) {
         return input -> Optional.of(new ParseResult<>(value, input));
+    }
+
+    /**
+     * Trampoline interface for tail-recursive optimization
+     */
+    @FunctionalInterface
+    public interface Trampoline<T> {
+        Trampoline<T> apply();
+
+        default boolean isComplete() {
+            return false;
+        }
+
+        default T result() {
+            throw new UnsupportedOperationException("Not completed yet");
+        }
+
+        static <T> Trampoline<T> complete(T value) {
+            return new Trampoline<T>() {
+                @Override
+                public boolean isComplete() {
+                    return true;
+                }
+
+                @Override
+                public T result() {
+                    return value;
+                }
+
+                @Override
+                public Trampoline<T> apply() {
+                    throw new UnsupportedOperationException("Already completed");
+                }
+            };
+        }
+
+        static <T> T execute(Trampoline<T> trampoline) {
+            while (!trampoline.isComplete()) {
+                trampoline = trampoline.apply();
+            }
+            return trampoline.result();
+        }
+    }
+
+    /**
+     * Helper method for many parser using trampoline
+     */
+    private static <T> Trampoline<ParseResult<List<T>>> manyTrampoline(
+            Parser<T> parser, String input, List<T> accumulated) {
+        return parser.parse(input)
+            .map(result -> (Trampoline<ParseResult<List<T>>>) () ->
+                manyTrampoline(parser, result.remaining(),
+                    Stream.concat(accumulated.stream(), Stream.of(result.value())).toList()))
+            .orElse(Trampoline.complete(new ParseResult<>(List.copyOf(accumulated), input)));
+    }
+
+    /**
+     * Parser that applies the given parser zero or more times, collecting results in a list
+     */
+    public static <T> Parser<List<T>> many(Parser<T> parser) {
+        return input -> Optional.of(Trampoline.execute(manyTrampoline(parser, input, List.of())));
+    }
+
+    /**
+     * Parser that applies the given parser one or more times, collecting results in a list
+     */
+    public static <T> Parser<List<T>> some1(Parser<T> parser) {
+        return input -> parser.parse(input)
+            .flatMap(firstResult -> many(parser).parse(firstResult.remaining())
+                .map(manyResult -> {
+                    var allResults = Stream.concat(
+                        Stream.of(firstResult.value()),
+                        manyResult.value().stream()
+                    ).toList();
+                    return new ParseResult<>(allResults, manyResult.remaining());
+                }));
     }
 
     // Employee data classes
@@ -109,44 +168,57 @@ public class Exercise2 {
     }
 
     /**
-     * Parser for integer numbers
+     * Parser for digit character
      */
-    public static Parser<Integer> integerParser() {
+    public static Parser<Character> digit() {
         return input -> {
             if (input.isEmpty() || !Character.isDigit(input.charAt(0))) {
                 return Optional.empty();
             }
-
-            StringBuilder number = new StringBuilder();
-            int i = 0;
-            while (i < input.length() && Character.isDigit(input.charAt(i))) {
-                number.append(input.charAt(i));
-                i++;
-            }
-
-            try {
-                int value = Integer.parseInt(number.toString());
-                return Optional.of(new ParseResult<>(value, input.substring(i)));
-            } catch (NumberFormatException e) {
-                return Optional.empty();
-            }
+            return Optional.of(new ParseResult<>(input.charAt(0), input.substring(1)));
         };
     }
 
     /**
-     * Parser for whitespace characters
+     * Parser for integer numbers using functional approach
+     */
+    public static Parser<Integer> integerParser() {
+        return input -> some1(digit()).parse(input)
+            .flatMap(result -> {
+                var digitString = result.value().stream()
+                    .map(String::valueOf)
+                    .collect(Collectors.joining());
+                try {
+                    var value = Integer.parseInt(digitString);
+                    return Optional.of(new ParseResult<>(value, result.remaining()));
+                } catch (NumberFormatException e) {
+                    return Optional.empty();
+                }
+            });
+    }
+
+    /**
+     * Parser for single whitespace character
+     */
+    public static Parser<Character> whitespaceChar() {
+        return input -> {
+            if (input.isEmpty() || !Character.isWhitespace(input.charAt(0))) {
+                return Optional.empty();
+            }
+            return Optional.of(new ParseResult<>(input.charAt(0), input.substring(1)));
+        };
+    }
+
+    /**
+     * Parser for whitespace characters using functional approach
      */
     public static Parser<String> whitespace() {
-        return input -> {
-            StringBuilder whitespace = new StringBuilder();
-            int i = 0;
-            while (i < input.length() && Character.isWhitespace(input.charAt(i))) {
-                whitespace.append(input.charAt(i));
-                i++;
-            }
-
-            return Optional.of(new ParseResult<>(whitespace.toString(), input.substring(i)));
-        };
+        return input -> many(whitespaceChar()).parse(input)
+            .map(result -> new ParseResult<>(
+                result.value().stream()
+                    .map(String::valueOf)
+                    .collect(Collectors.joining()),
+                result.remaining()));
     }
 
     /**
@@ -204,73 +276,35 @@ public class Exercise2 {
     }
 
     /**
-     * Basic employee parser: Name,Age,Position
+     * Basic employee parser: Name,Age,Position using functional composition
      */
     public static Parser<Employee> employeeParser() {
-        return input -> {
-            // Parse name
-            Optional<ParseResult<String>> nameResult = csvField().parse(input);
-            if (nameResult.isEmpty()) {
-                return Optional.empty();
-            }
-
-            // Parse comma
-            Optional<ParseResult<Character>> comma1Result = comma().parse(nameResult.get().remaining());
-            if (comma1Result.isEmpty()) {
-                return Optional.empty();
-            }
-
-            // Parse age
-            Optional<ParseResult<Integer>> ageResult = integerParser().parse(comma1Result.get().remaining());
-            if (ageResult.isEmpty()) {
-                return Optional.empty();
-            }
-
-            // Parse comma
-            Optional<ParseResult<Character>> comma2Result = comma().parse(ageResult.get().remaining());
-            if (comma2Result.isEmpty()) {
-                return Optional.empty();
-            }
-
-            // Parse position
-            Optional<ParseResult<String>> positionResult = csvField().parse(comma2Result.get().remaining());
-            if (positionResult.isEmpty()) {
-                return Optional.empty();
-            }
-
-            Employee employee = new Employee(
-                nameResult.get().value(),
-                ageResult.get().value(),
-                positionResult.get().value());
-
-            return Optional.of(new ParseResult<>(employee, positionResult.get().remaining()));
-        };
+        return input -> csvField().parse(input)
+            .flatMap(nameResult -> comma().parse(nameResult.remaining())
+                .flatMap(comma1 -> integerParser().parse(comma1.remaining())
+                    .flatMap(ageResult -> comma().parse(ageResult.remaining())
+                        .flatMap(comma2 -> csvField().parse(comma2.remaining())
+                            .map(positionResult -> new ParseResult<>(
+                                new Employee(nameResult.value(), ageResult.value(), positionResult.value()),
+                                positionResult.remaining()))))));
     }
 
     /**
-     * Multi-employee parser that handles multiple lines
+     * Multi-employee parser that handles multiple lines using functional approach
      */
     public static Parser<List<Employee>> multiEmployeeParser() {
         return input -> {
-            List<Employee> employees = new ArrayList<>();
-            String remaining = input;
-
-            if (remaining.isEmpty()) {
-                return Optional.of(new ParseResult<>(employees, remaining));
+            if (input.isEmpty()) {
+                return Optional.of(new ParseResult<>(List.of(), input));
             }
 
-            String[] lines = remaining.split("\n");
-            for (String line : lines) {
-                if (line.trim().isEmpty()) {
-                    continue;
-                }
-
-                Optional<ParseResult<Employee>> employeeResult = employeeParser().parse(line.trim());
-                if (employeeResult.isPresent()) {
-                    employees.add(employeeResult.get().value());
-                }
-                // Skip invalid lines
-            }
+            var employees = Stream.of(input.split("\n"))
+                .filter(line -> !line.trim().isEmpty())
+                .map(line -> employeeParser().parse(line.trim()))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .map(ParseResult::value)
+                .toList();
 
             return Optional.of(new ParseResult<>(employees, ""));
         };

@@ -1,9 +1,10 @@
 package info.jab.cis194.homework10;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Exercise 1: Applicative Functors - Parser Combinators
@@ -60,23 +61,11 @@ public class Exercise1 {
          * @return a new parser that applies the function from funcParser to the value from this parser
          */
         default <U> Parser<U> apply(Parser<Function<T, U>> funcParser) {
-            return input -> {
-                Optional<ParseResult<Function<T, U>>> funcResult = funcParser.parse(input);
-                if (funcResult.isEmpty()) {
-                    return Optional.empty();
-                }
-
-                Optional<ParseResult<T>> valueResult = this.parse(funcResult.get().remaining());
-                if (valueResult.isEmpty()) {
-                    return Optional.empty();
-                }
-
-                Function<T, U> func = funcResult.get().value();
-                T value = valueResult.get().value();
-                String remaining = valueResult.get().remaining();
-
-                return Optional.of(new ParseResult<>(func.apply(value), remaining));
-            };
+            return input -> funcParser.parse(input)
+                .flatMap(funcResult -> this.parse(funcResult.remaining())
+                    .map(valueResult -> new ParseResult<>(
+                        funcResult.value().apply(valueResult.value()),
+                        valueResult.remaining())));
         }
 
         /**
@@ -86,13 +75,7 @@ public class Exercise1 {
          * @return a parser that tries this parser first, then other if this fails
          */
         default Parser<T> or(Parser<T> other) {
-            return input -> {
-                Optional<ParseResult<T>> result = this.parse(input);
-                if (result.isPresent()) {
-                    return result;
-                }
-                return other.parse(input);
-            };
+            return input -> this.parse(input).or(() -> other.parse(input));
         }
     }
 
@@ -160,20 +143,11 @@ public class Exercise1 {
      * @return a parser that applies both parsers in sequence and combines results
      */
     public static Parser<String> sequence2(Parser<Character> first, Parser<Character> second) {
-        return input -> {
-            Optional<ParseResult<Character>> firstResult = first.parse(input);
-            if (firstResult.isEmpty()) {
-                return Optional.empty();
-            }
-
-            Optional<ParseResult<Character>> secondResult = second.parse(firstResult.get().remaining());
-            if (secondResult.isEmpty()) {
-                return Optional.empty();
-            }
-
-            String combined = "" + firstResult.get().value() + secondResult.get().value();
-            return Optional.of(new ParseResult<>(combined, secondResult.get().remaining()));
-        };
+        return input -> first.parse(input)
+            .flatMap(firstResult -> second.parse(firstResult.remaining())
+                .map(secondResult -> new ParseResult<>(
+                    "" + firstResult.value() + secondResult.value(),
+                    secondResult.remaining())));
     }
 
     /**
@@ -182,22 +156,27 @@ public class Exercise1 {
      * @return a parser that succeeds if it can parse exactly two consecutive digits
      */
     public static Parser<Integer> twoDigitNumber() {
+        return input -> digit().parse(input)
+            .flatMap(firstDigit -> digit().parse(firstDigit.remaining())
+                .map(secondDigit -> {
+                    var tens = Character.getNumericValue(firstDigit.value());
+                    var ones = Character.getNumericValue(secondDigit.value());
+                    return new ParseResult<>(tens * 10 + ones, secondDigit.remaining());
+                }));
+    }
+
+    /**
+     * Parser that matches a letter or digit character
+     *
+     * @return a parser that succeeds if the first character is a letter or digit
+     */
+    public static Parser<Character> letterOrDigit() {
         return input -> {
-            Optional<ParseResult<Character>> firstDigit = digit().parse(input);
-            if (firstDigit.isEmpty()) {
+            if (input.isEmpty() || !Character.isLetterOrDigit(input.charAt(0))) {
                 return Optional.empty();
             }
-
-            Optional<ParseResult<Character>> secondDigit = digit().parse(firstDigit.get().remaining());
-            if (secondDigit.isEmpty()) {
-                return Optional.empty();
-            }
-
-            int tens = Character.getNumericValue(firstDigit.get().value());
-            int ones = Character.getNumericValue(secondDigit.get().value());
-            int number = tens * 10 + ones;
-
-            return Optional.of(new ParseResult<>(number, secondDigit.get().remaining()));
+            var character = input.charAt(0);
+            return Optional.of(new ParseResult<>(character, input.substring(1)));
         };
     }
 
@@ -207,30 +186,15 @@ public class Exercise1 {
      * @return a parser that succeeds if it can parse a valid identifier
      */
     public static Parser<String> identifier() {
-        return input -> {
-            // Must start with a letter
-            Optional<ParseResult<Character>> firstResult = letter().parse(input);
-            if (firstResult.isEmpty()) {
-                return Optional.empty();
-            }
-
-            StringBuilder identifier = new StringBuilder();
-            identifier.append(firstResult.get().value());
-            String remaining = firstResult.get().remaining();
-
-            // Continue parsing letters and digits
-            while (!remaining.isEmpty()) {
-                char c = remaining.charAt(0);
-                if (Character.isLetterOrDigit(c)) {
-                    identifier.append(c);
-                    remaining = remaining.substring(1);
-                } else {
-                    break;
-                }
-            }
-
-            return Optional.of(new ParseResult<>(identifier.toString(), remaining));
-        };
+        return input -> letter().parse(input)
+            .flatMap(firstResult -> many(letterOrDigit()).parse(firstResult.remaining())
+                .map(restResult -> {
+                    var identifierChars = List.<Character>of(firstResult.value());
+                    var allChars = Stream.concat(identifierChars.stream(), restResult.value().stream())
+                        .map(String::valueOf)
+                        .collect(Collectors.joining());
+                    return new ParseResult<>(allChars, restResult.remaining());
+                }));
     }
 
     /**
@@ -241,24 +205,64 @@ public class Exercise1 {
      * @return a parser that matches (inner)
      */
     public static <T> Parser<T> parenthesized(Parser<T> inner) {
-        return input -> {
-            Optional<ParseResult<Character>> openParen = char_('(').parse(input);
-            if (openParen.isEmpty()) {
-                return Optional.empty();
-            }
+        return input -> char_('(').parse(input)
+            .flatMap(openParen -> inner.parse(openParen.remaining())
+                .flatMap(innerResult -> char_(')').parse(innerResult.remaining())
+                    .map(closeParen -> new ParseResult<>(innerResult.value(), closeParen.remaining()))));
+    }
 
-            Optional<ParseResult<T>> innerResult = inner.parse(openParen.get().remaining());
-            if (innerResult.isEmpty()) {
-                return Optional.empty();
-            }
+    /**
+     * Trampoline interface for tail-recursive optimization
+     */
+    @FunctionalInterface
+    public interface Trampoline<T> {
+        Trampoline<T> apply();
 
-            Optional<ParseResult<Character>> closeParen = char_(')').parse(innerResult.get().remaining());
-            if (closeParen.isEmpty()) {
-                return Optional.empty();
-            }
+        default boolean isComplete() {
+            return false;
+        }
 
-            return Optional.of(new ParseResult<>(innerResult.get().value(), closeParen.get().remaining()));
-        };
+        default T result() {
+            throw new UnsupportedOperationException("Not completed yet");
+        }
+
+        static <T> Trampoline<T> complete(T value) {
+            return new Trampoline<T>() {
+                @Override
+                public boolean isComplete() {
+                    return true;
+                }
+
+                @Override
+                public T result() {
+                    return value;
+                }
+
+                @Override
+                public Trampoline<T> apply() {
+                    throw new UnsupportedOperationException("Already completed");
+                }
+            };
+        }
+
+        static <T> T execute(Trampoline<T> trampoline) {
+            while (!trampoline.isComplete()) {
+                trampoline = trampoline.apply();
+            }
+            return trampoline.result();
+        }
+    }
+
+    /**
+     * Helper method for many parser using trampoline
+     */
+    private static <T> Trampoline<ParseResult<List<T>>> manyTrampoline(
+            Parser<T> parser, String input, List<T> accumulated) {
+        return parser.parse(input)
+            .map(result -> (Trampoline<ParseResult<List<T>>>) () ->
+                manyTrampoline(parser, result.remaining(),
+                    Stream.concat(accumulated.stream(), Stream.of(result.value())).toList()))
+            .orElse(Trampoline.complete(new ParseResult<>(List.copyOf(accumulated), input)));
     }
 
     /**
@@ -269,21 +273,7 @@ public class Exercise1 {
      * @return a parser that always succeeds, returning a list of parsed values
      */
     public static <T> Parser<List<T>> many(Parser<T> parser) {
-        return input -> {
-            List<T> results = new ArrayList<>();
-            String remaining = input;
-
-            while (true) {
-                Optional<ParseResult<T>> result = parser.parse(remaining);
-                if (result.isEmpty()) {
-                    break;
-                }
-                results.add(result.get().value());
-                remaining = result.get().remaining();
-            }
-
-            return Optional.of(new ParseResult<>(results, remaining));
-        };
+        return input -> Optional.of(Trampoline.execute(manyTrampoline(parser, input, List.of())));
     }
 
     /**
@@ -294,22 +284,14 @@ public class Exercise1 {
      * @return a parser that succeeds only if it can parse at least one value
      */
     public static <T> Parser<List<T>> some1(Parser<T> parser) {
-        return input -> {
-            Optional<ParseResult<T>> firstResult = parser.parse(input);
-            if (firstResult.isEmpty()) {
-                return Optional.empty();
-            }
-
-            Optional<ParseResult<List<T>>> manyResult = many(parser).parse(firstResult.get().remaining());
-            if (manyResult.isEmpty()) {
-                return Optional.empty();
-            }
-
-            List<T> allResults = new ArrayList<>();
-            allResults.add(firstResult.get().value());
-            allResults.addAll(manyResult.get().value());
-
-            return Optional.of(new ParseResult<>(allResults, manyResult.get().remaining()));
-        };
+        return input -> parser.parse(input)
+            .flatMap(firstResult -> many(parser).parse(firstResult.remaining())
+                .map(manyResult -> {
+                    var allResults = Stream.concat(
+                        Stream.of(firstResult.value()),
+                        manyResult.value().stream()
+                    ).toList();
+                    return new ParseResult<>(allResults, manyResult.remaining());
+                }));
     }
 }
