@@ -1,7 +1,7 @@
 package info.jab.cis194.homework3;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.IntStream;
 
 /**
  * Exercise 2: Local Maxima Function
@@ -32,25 +32,27 @@ public class Exercise2 {
             throw new IllegalArgumentException("Input list cannot be null");
         }
 
-        List<T> result = new ArrayList<>();
+        return input.size() < 3
+            ? List.of()
+            : IntStream.range(1, input.size() - 1)
+                .filter(i -> isLocalMaximum(input, i))
+                .mapToObj(input::get)
+                .toList();
+    }
 
-        // Need at least 3 elements to have a local maximum
-        if (input.size() < 3) {
-            return result;
-        }
+    /**
+     * Checks if the element at the given index is a local maximum.
+     *
+     * @param <T> the type of elements in the list
+     * @param input the input list
+     * @param index the index to check
+     * @return true if the element is a local maximum, false otherwise
+     */
+    private static <T extends Comparable<T>> boolean isLocalMaximum(List<T> input, int index) {
+        T current = input.get(index);
+        T previous = input.get(index - 1);
+        T next = input.get(index + 1);
 
-        // Check each element from index 1 to size-2 (elements that have both neighbors)
-        for (int i = 1; i < input.size() - 1; i++) {
-            T current = input.get(i);
-            T previous = input.get(i - 1);
-            T next = input.get(i + 1);
-
-            // Check if current is strictly greater than both neighbors
-            if (current.compareTo(previous) > 0 && current.compareTo(next) > 0) {
-                result.add(current);
-            }
-        }
-
-        return result;
+        return current.compareTo(previous) > 0 && current.compareTo(next) > 0;
     }
 }

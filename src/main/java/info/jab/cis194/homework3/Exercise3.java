@@ -1,6 +1,8 @@
 package info.jab.cis194.homework3;
 
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * Exercise 3: Histogram Function
@@ -41,43 +43,41 @@ public class Exercise3 {
             throw new IllegalArgumentException("Input list cannot be null");
         }
 
-        // Count occurrences of each digit 0-9
-        int[] counts = new int[10];
-        for (Integer digit : input) {
-            if (digit >= 0 && digit <= 9) {
-                counts[digit]++;
-            }
-        }
+        // Count occurrences of each digit 0-9 using functional approach
+        List<Long> counts = IntStream.range(0, 10)
+            .mapToObj(digit -> input.stream()
+                .filter(n -> n != null && n == digit)
+                .count())
+            .toList();
 
         // Find the maximum count to determine height of histogram
-        int maxCount = 0;
-        for (int count : counts) {
-            maxCount = Math.max(maxCount, count);
-        }
+        long maxCount = counts.stream()
+            .mapToLong(Long::longValue)
+            .max()
+            .orElse(0);
 
-        StringBuilder result = new StringBuilder();
+        // Build histogram from top to bottom using functional approach
+        String histogramLines = IntStream.rangeClosed(1, (int) maxCount)
+            .map(row -> (int) maxCount - row + 1) // Reverse to go from top to bottom
+            .mapToObj(row -> buildHistogramLine(counts, row))
+            .collect(Collectors.joining("\n"));
 
-        // Build histogram from top to bottom
-        for (int row = maxCount; row >= 1; row--) {
-            StringBuilder line = new StringBuilder();
-            for (int col = 0; col < 10; col++) {
-                if (counts[col] >= row) {
-                    line.append("*");
-                } else {
-                    line.append(" ");
-                }
-            }
-            // Trim trailing spaces from the line but keep internal spaces
-            String lineStr = line.toString().replaceAll("\\s+$", "");
-            result.append(lineStr).append("\n");
-        }
+        return histogramLines.isEmpty()
+            ? "==========\n0123456789\n"
+            : histogramLines + "\n==========\n0123456789\n";
+    }
 
-        // Add the separator line
-        result.append("==========\n");
-
-        // Add the digit labels
-        result.append("0123456789\n");
-
-        return result.toString();
+    /**
+     * Builds a single line of the histogram for the given row.
+     *
+     * @param counts the counts for each digit 0-9
+     * @param row the row number (1-indexed from bottom)
+     * @return the histogram line as a string
+     */
+    private static String buildHistogramLine(List<Long> counts, int row) {
+        return counts.stream()
+            .map(count -> count >= row ? "*" : " ")
+            .collect(Collectors.joining())
+            .replaceAll("\\s+$", ""); // Trim trailing spaces
     }
 }

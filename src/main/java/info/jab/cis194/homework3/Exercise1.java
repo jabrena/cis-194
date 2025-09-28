@@ -1,7 +1,7 @@
 package info.jab.cis194.homework3;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.IntStream;
 
 /**
  * Exercise 1: Skips Function
@@ -34,26 +34,25 @@ public class Exercise1 {
             throw new IllegalArgumentException("Input list cannot be null");
         }
 
-        List<List<T>> result = new ArrayList<>();
+        return input.isEmpty()
+            ? List.of()
+            : IntStream.range(0, input.size())
+                .mapToObj(i -> takeEveryNth(input, i + 1, i))
+                .toList();
+    }
 
-        // If input is empty, return empty list
-        if (input.isEmpty()) {
-            return result;
-        }
-
-        // For each position i (0-indexed), create a list that starts at position i
-        // and takes every (i+1)th element
-        for (int i = 0; i < input.size(); i++) {
-            List<T> sublist = new ArrayList<>();
-
-            // Start at position i, then skip (i+1) elements each time
-            for (int j = i; j < input.size(); j += (i + 1)) {
-                sublist.add(input.get(j));
-            }
-
-            result.add(sublist);
-        }
-
-        return result;
+    /**
+     * Takes every nth element from the input list starting at the given offset.
+     *
+     * @param <T> the type of elements in the list
+     * @param input the input list
+     * @param step the step size (how many elements to skip)
+     * @param startIndex the starting index
+     * @return a list containing every nth element
+     */
+    private static <T> List<T> takeEveryNth(List<T> input, int step, int startIndex) {
+        return IntStream.iterate(startIndex, i -> i < input.size(), i -> i + step)
+            .mapToObj(input::get)
+            .toList();
     }
 }
