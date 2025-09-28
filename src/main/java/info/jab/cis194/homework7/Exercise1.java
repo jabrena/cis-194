@@ -2,6 +2,8 @@ package info.jab.cis194.homework7;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * Exercise 1: JoinList implementation
@@ -11,6 +13,58 @@ import java.util.List;
  * represent concatenations. This allows O(1) concatenation operations.
  */
 public class Exercise1 {
+
+    /**
+     * Trampoline interface for stack-safe recursion
+     */
+    @FunctionalInterface
+    private interface Trampoline<T> {
+        Trampoline<T> apply();
+
+        default boolean isComplete() {
+            return false;
+        }
+
+        default T result() {
+            throw new UnsupportedOperationException("Not completed yet");
+        }
+
+        default T evaluate() {
+            Trampoline<T> current = this;
+            while (!current.isComplete()) {
+                current = current.apply();
+            }
+            return current.result();
+        }
+
+        static <T> Trampoline<T> complete(T result) {
+            return new Trampoline<T>() {
+                @Override
+                public Trampoline<T> apply() {
+                    throw new UnsupportedOperationException("Already completed");
+                }
+
+                @Override
+                public boolean isComplete() {
+                    return true;
+                }
+
+                @Override
+                public T result() {
+                    return result;
+                }
+            };
+        }
+
+        static <T> Trampoline<T> more(Supplier<Trampoline<T>> supplier) {
+            return new Trampoline<T>() {
+                @Override
+                public Trampoline<T> apply() {
+                    return supplier.get();
+                }
+            };
+        }
+    }
 
     /**
      * JoinList data structure using algebraic data types pattern
@@ -53,6 +107,27 @@ public class Exercise1 {
          * Takes the first n elements from this JoinList
          */
         public abstract JoinList<T> takeJ(int n);
+
+        /**
+         * Apply a function to each element in the JoinList, creating a new JoinList
+         * Functional map operation
+         */
+        public abstract <U> JoinList<U> map(Function<T, U> mapper);
+
+        /**
+         * Filter elements in the JoinList based on a predicate
+         */
+        public abstract JoinList<T> filter(Function<T, Boolean> predicate);
+
+        /**
+         * Fold the JoinList from the left using a binary operation
+         */
+        public abstract <U> U foldLeft(U identity, Function<U, Function<T, U>> combiner);
+
+        /**
+         * Fold the JoinList from the right using a binary operation
+         */
+        public abstract <U> U foldRight(U identity, Function<T, Function<U, U>> combiner);
     }
 
     /**
@@ -92,6 +167,26 @@ public class Exercise1 {
         @Override
         public JoinList<T> takeJ(int n) {
             return this;
+        }
+
+        @Override
+        public <U> JoinList<U> map(Function<T, U> mapper) {
+            return empty();
+        }
+
+        @Override
+        public JoinList<T> filter(Function<T, Boolean> predicate) {
+            return this;
+        }
+
+        @Override
+        public <U> U foldLeft(U identity, Function<U, Function<T, U>> combiner) {
+            return identity;
+        }
+
+        @Override
+        public <U> U foldRight(U identity, Function<T, Function<U, U>> combiner) {
+            return identity;
         }
     }
 
@@ -152,6 +247,26 @@ public class Exercise1 {
                 return empty();
             }
             return this;
+        }
+
+        @Override
+        public <U> JoinList<U> map(Function<T, U> mapper) {
+            return single(mapper.apply(element));
+        }
+
+        @Override
+        public JoinList<T> filter(Function<T, Boolean> predicate) {
+            return predicate.apply(element) ? this : empty();
+        }
+
+        @Override
+        public <U> U foldLeft(U identity, Function<U, Function<T, U>> combiner) {
+            return combiner.apply(identity).apply(element);
+        }
+
+        @Override
+        public <U> U foldRight(U identity, Function<T, Function<U, U>> combiner) {
+            return combiner.apply(element).apply(identity);
         }
     }
 
@@ -242,6 +357,28 @@ public class Exercise1 {
                 return left.append(right.takeJ(n - leftSize));
             }
         }
+
+        @Override
+        public <U> JoinList<U> map(Function<T, U> mapper) {
+            return left.map(mapper).append(right.map(mapper));
+        }
+
+        @Override
+        public JoinList<T> filter(Function<T, Boolean> predicate) {
+            return left.filter(predicate).append(right.filter(predicate));
+        }
+
+        @Override
+        public <U> U foldLeft(U identity, Function<U, Function<T, U>> combiner) {
+            U leftResult = left.foldLeft(identity, combiner);
+            return right.foldLeft(leftResult, combiner);
+        }
+
+        @Override
+        public <U> U foldRight(U identity, Function<T, Function<U, U>> combiner) {
+            U rightResult = right.foldRight(identity, combiner);
+            return left.foldRight(rightResult, combiner);
+        }
     }
 
     /**
@@ -259,32 +396,56 @@ public class Exercise1 {
     }
 
     /**
-     * Creates a JoinList from a regular List
+     * Creates a JoinList from a regular List using functional approach
      */
     public static <T> JoinList<T> fromList(List<T> list) {
         if (list.isEmpty()) {
             return empty();
         }
 
-        // Build a balanced tree for better performance
-        return fromListBalanced(list, 0, list.size());
+        // Build a balanced tree for better performance using trampoline
+        return fromListBalancedTrampoline(list, 0, list.size()).evaluate();
     }
 
     /**
-     * Helper method to build a balanced JoinList from a sublist
+     * Stack-safe helper method to build a balanced JoinList using trampoline
      */
-    private static <T> JoinList<T> fromListBalanced(List<T> list, int start, int end) {
+    private static <T> Trampoline<JoinList<T>> fromListBalancedTrampoline(List<T> list, int start, int end) {
         if (start >= end) {
-            return empty();
+            return Trampoline.complete(empty());
         }
         if (end - start == 1) {
-            return single(list.get(start));
+            return Trampoline.complete(single(list.get(start)));
         }
 
         int mid = start + (end - start) / 2;
-        JoinList<T> left = fromListBalanced(list, start, mid);
-        JoinList<T> right = fromListBalanced(list, mid, end);
+        return Trampoline.more(() -> {
+            JoinList<T> left = fromListBalancedTrampoline(list, start, mid).evaluate();
+            JoinList<T> right = fromListBalancedTrampoline(list, mid, end).evaluate();
+            return Trampoline.complete(left.append(right));
+        });
+    }
 
-        return left.append(right);
+    /**
+     * Alternative functional approach using fold
+     */
+    public static <T> JoinList<T> fromListFold(List<T> list) {
+        return list.stream()
+                .map(Exercise1::<T>single)
+                .reduce(empty(), JoinList::append);
+    }
+
+    /**
+     * Create JoinList using functional composition
+     */
+    public static <T> Function<List<T>, JoinList<T>> joinListBuilder() {
+        return Exercise1::fromList;
+    }
+
+    /**
+     * Functional utility to transform a regular list operation to JoinList operation
+     */
+    public static <T, U> Function<JoinList<T>, JoinList<U>> liftFunction(Function<List<T>, List<U>> listFunction) {
+        return joinList -> fromList(listFunction.apply(joinList.toList()));
     }
 }

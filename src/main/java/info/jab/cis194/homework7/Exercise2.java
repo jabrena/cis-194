@@ -2,6 +2,9 @@ package info.jab.cis194.homework7;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.function.BinaryOperator;
+import java.util.function.Function;
 
 /**
  * Exercise 2: Monoids and Monoid Laws
@@ -31,6 +34,44 @@ public class Exercise2 {
          * The associative binary operation
          */
         T mappend(T a, T b);
+
+        /**
+         * Convert this monoid to a BinaryOperator for use with streams
+         */
+        default BinaryOperator<T> asBinaryOperator() {
+            return this::mappend;
+        }
+
+        /**
+         * Create a function that appends a fixed value to the left
+         */
+        default Function<T, T> appendLeft(T value) {
+            return other -> mappend(value, other);
+        }
+
+        /**
+         * Create a function that appends a fixed value to the right
+         */
+        default Function<T, T> appendRight(T value) {
+            return other -> mappend(other, value);
+        }
+
+        /**
+         * Compose this monoid with a function to create a new monoid
+         */
+        default <U> Monoid<U> compose(Function<U, T> f, Function<T, U> g) {
+            return new Monoid<U>() {
+                @Override
+                public U mempty() {
+                    return g.apply(Monoid.this.mempty());
+                }
+
+                @Override
+                public U mappend(U a, U b) {
+                    return g.apply(Monoid.this.mappend(f.apply(a), f.apply(b)));
+                }
+            };
+        }
     }
 
     /**
@@ -135,5 +176,66 @@ public class Exercise2 {
      */
     public static <T> T foldMonoid(Monoid<T> monoid, List<T> values) {
         return mconcat(monoid, values);
+    }
+
+    /**
+     * Functional approach using Optional for safe monoid operations
+     */
+    public static <T> Optional<T> mconcatSafe(Monoid<T> monoid, List<T> values) {
+        return values.isEmpty() ?
+            Optional.empty() :
+            Optional.of(mconcat(monoid, values));
+    }
+
+    /**
+     * Create a curried version of mconcat
+     */
+    public static <T> Function<List<T>, T> curriedMconcat(Monoid<T> monoid) {
+        return values -> mconcat(monoid, values);
+    }
+
+    /**
+     * Lift a binary operation to work with Optional values
+     */
+    public static <T> BinaryOperator<Optional<T>> liftOptional(Monoid<T> monoid) {
+        return (opt1, opt2) -> {
+            if (opt1.isEmpty()) return opt2;
+            if (opt2.isEmpty()) return opt1;
+            return Optional.of(monoid.mappend(opt1.get(), opt2.get()));
+        };
+    }
+
+    /**
+     * Create a monoid for Optional values
+     */
+    public static <T> Monoid<Optional<T>> optionalMonoid(Monoid<T> innerMonoid) {
+        return new Monoid<Optional<T>>() {
+            @Override
+            public Optional<T> mempty() {
+                return Optional.empty();
+            }
+
+            @Override
+            public Optional<T> mappend(Optional<T> a, Optional<T> b) {
+                return liftOptional(innerMonoid).apply(a, b);
+            }
+        };
+    }
+
+    /**
+     * Parallel mconcat for better performance with large lists
+     */
+    public static <T> T mconcatParallel(Monoid<T> monoid, List<T> values) {
+        return values.parallelStream()
+                    .reduce(monoid.mempty(), monoid::mappend);
+    }
+
+    /**
+     * Create a function that maps over a list and then concatenates using a monoid
+     */
+    public static <T, U> Function<List<T>, U> mapThenConcat(Function<T, U> mapper, Monoid<U> monoid) {
+        return list -> list.stream()
+                          .map(mapper)
+                          .reduce(monoid.mempty(), monoid::mappend);
     }
 }

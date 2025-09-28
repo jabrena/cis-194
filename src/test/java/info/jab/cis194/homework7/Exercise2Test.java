@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Test class for Exercise 2: Monoids and Monoid Laws
