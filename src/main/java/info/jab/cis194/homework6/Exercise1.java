@@ -1,5 +1,7 @@
 package info.jab.cis194.homework6;
 
+import java.util.function.Function;
+import java.util.function.UnaryOperator;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
 
@@ -9,11 +11,27 @@ import java.util.stream.Stream;
  * This exercise implements fibonacci numbers using lazy evaluation concepts.
  * We create an infinite stream of fibonacci numbers where each number
  * is computed only when needed (lazy evaluation).
+ *
+ * Follows functional programming principles:
+ * - Immutability
+ * - Pure functions
+ * - Higher-order functions
+ * - Function composition
+ * - Lazy evaluation
  */
 public class Exercise1 {
 
     /**
-     * Returns the nth fibonacci number (0-indexed)
+     * Immutable pair to represent fibonacci state
+     */
+    public record FibPair(long current, long next) {
+        public FibPair advance() {
+            return new FibPair(next, current + next);
+        }
+    }
+
+    /**
+     * Returns the nth fibonacci number (0-indexed) using functional approach
      * F(0) = 0, F(1) = 1, F(n) = F(n-1) + F(n-2)
      *
      * @param n the index of the fibonacci number to compute
@@ -23,20 +41,26 @@ public class Exercise1 {
         if (n < 0) {
             throw new IllegalArgumentException("Index must be non-negative");
         }
-        if (n == 0) return 0;
-        if (n == 1) return 1;
 
-        // Use iterative approach for efficiency
-        long prev = 0;
-        long curr = 1;
+        return fibonacciStream()
+                .skip(n)
+                .findFirst()
+                .orElse(0);
+    }
 
-        for (int i = 2; i <= n; i++) {
-            long next = prev + curr;
-            prev = curr;
-            curr = next;
+    /**
+     * Pure functional fibonacci using fold/reduce
+     */
+    public long fibonacciFunctional(int n) {
+        if (n < 0) {
+            throw new IllegalArgumentException("Index must be non-negative");
         }
 
-        return curr;
+        return Stream.iterate(new FibPair(0, 1), FibPair::advance)
+                .limit(n + 1)
+                .reduce((first, second) -> second)
+                .map(FibPair::current)
+                .orElse(0L);
     }
 
     /**
@@ -47,14 +71,8 @@ public class Exercise1 {
      * @return an infinite stream of fibonacci numbers
      */
     public LongStream fibonacciStream() {
-        return Stream.iterate(
-            // Seed: start with F(0) = 0 and F(1) = 1 encoded as a pair
-            new long[]{0, 1},
-            // Function to generate next fibonacci pair [F(n), F(n+1)]
-            pair -> new long[]{pair[1], pair[0] + pair[1]}
-        )
-        // Extract just the first element of each pair (the current fibonacci number)
-        .mapToLong(pair -> pair[0]);
+        return Stream.iterate(new FibPair(0, 1), FibPair::advance)
+                .mapToLong(FibPair::current);
     }
 
     /**
@@ -64,10 +82,37 @@ public class Exercise1 {
      * @return an infinite stream of fibonacci numbers as Long objects
      */
     public Stream<Long> fibonacciStreamBoxed() {
-        return Stream.iterate(
-            new long[]{0, 1},
-            pair -> new long[]{pair[1], pair[0] + pair[1]}
-        )
-        .map(pair -> pair[0]);
+        return Stream.iterate(new FibPair(0, 1), FibPair::advance)
+                .map(FibPair::current);
+    }
+
+    /**
+     * Higher-order function that creates a fibonacci generator
+     */
+    public static Function<Integer, Long> createFibonacciFunction() {
+        return n -> new Exercise1().fibonacci(n);
+    }
+
+    /**
+     * Curried fibonacci function
+     */
+    public static Function<Integer, Function<Integer, Stream<Long>>> fibonacciRange() {
+        return start -> end -> new Exercise1().fibonacciStreamBoxed()
+                .skip(start)
+                .limit(end - start + 1);
+    }
+
+    /**
+     * Composition of fibonacci functions
+     */
+    public long fibonacciComposed(int n) {
+        UnaryOperator<FibPair> advance = FibPair::advance;
+        Function<FibPair, Long> extractCurrent = FibPair::current;
+
+        return Stream.iterate(new FibPair(0, 1), advance)
+                .skip(n)
+                .map(extractCurrent)
+                .findFirst()
+                .orElse(0L);
     }
 }

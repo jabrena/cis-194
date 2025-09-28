@@ -1,6 +1,7 @@
 package info.jab.cis194.homework2;
 
 import java.util.Optional;
+import java.util.function.Supplier;
 
 /**
  * Exercise 2 - MessageTree Insert Function
@@ -10,9 +11,61 @@ import java.util.Optional;
  * - Immutable data structures (creates new trees instead of modifying existing ones)
  * - Pure functions (no side effects)
  * - Pattern matching using sealed interfaces
- * - Recursive tree operations
+ * - Recursive tree operations with Trampoline for stack safety
  */
 public class Exercise2 {
+
+    /**
+     * Trampoline interface for stack-safe recursion
+     */
+    @FunctionalInterface
+    private interface Trampoline<T> {
+        Trampoline<T> apply();
+
+        default boolean isComplete() {
+            return false;
+        }
+
+        default T result() {
+            throw new UnsupportedOperationException("Not completed yet");
+        }
+
+        default T evaluate() {
+            Trampoline<T> current = this;
+            while (!current.isComplete()) {
+                current = current.apply();
+            }
+            return current.result();
+        }
+
+        static <T> Trampoline<T> complete(T result) {
+            return new Trampoline<T>() {
+                @Override
+                public Trampoline<T> apply() {
+                    throw new UnsupportedOperationException("Already completed");
+                }
+
+                @Override
+                public boolean isComplete() {
+                    return true;
+                }
+
+                @Override
+                public T result() {
+                    return result;
+                }
+            };
+        }
+
+        static <T> Trampoline<T> more(Supplier<Trampoline<T>> supplier) {
+            return new Trampoline<T>() {
+                @Override
+                public Trampoline<T> apply() {
+                    return supplier.get();
+                }
+            };
+        }
+    }
 
     /**
      * Insert a LogMessage into a MessageTree, producing a new MessageTree using functional approach.
@@ -58,6 +111,47 @@ public class Exercise2 {
                     // Insert into right subtree
                     MessageTree newRight = insertValid(message, node.right());
                     yield MessageTree.node(node.left(), node.message(), newRight);
+                }
+            }
+        };
+    }
+
+    /**
+     * Stack-safe insertion using Trampoline
+     */
+    public MessageTree insertWithTrampoline(LogMessage logMessage, MessageTree tree) {
+        return Optional.ofNullable(logMessage)
+                .filter(msg -> tree != null)
+                .map(msg -> switch (msg) {
+                    case LogMessage.ValidMessage validMessage ->
+                        insertValidWithTrampoline(validMessage, tree).evaluate();
+                    case LogMessage.Unknown unknown -> tree;
+                })
+                .orElseThrow(() -> new IllegalArgumentException("LogMessage and MessageTree cannot be null"));
+    }
+
+    /**
+     * Trampoline-based recursive insertion for stack safety
+     */
+    private Trampoline<MessageTree> insertValidWithTrampoline(LogMessage.ValidMessage message, MessageTree tree) {
+        return switch (tree) {
+            case MessageTree.Leaf leaf ->
+                Trampoline.complete(MessageTree.node(MessageTree.leaf(), message, MessageTree.leaf()));
+
+            case MessageTree.Node node -> {
+                int messageTimestamp = message.timestamp();
+                int nodeTimestamp = node.timestamp();
+
+                if (messageTimestamp <= nodeTimestamp) {
+                    yield Trampoline.more(() -> {
+                        MessageTree newLeft = insertValidWithTrampoline(message, node.left()).evaluate();
+                        return Trampoline.complete(MessageTree.node(newLeft, node.message(), node.right()));
+                    });
+                } else {
+                    yield Trampoline.more(() -> {
+                        MessageTree newRight = insertValidWithTrampoline(message, node.right()).evaluate();
+                        return Trampoline.complete(MessageTree.node(node.left(), node.message(), newRight));
+                    });
                 }
             }
         };
