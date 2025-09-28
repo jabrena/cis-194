@@ -3,6 +3,7 @@ package info.jab.cis194.homework12;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
+import java.util.function.Supplier;
 import java.util.stream.IntStream;
 
 /**
@@ -21,6 +22,46 @@ public class Exercise2 {
 
     public Exercise2() {
         this.basicBattleLogic = new Exercise1();
+    }
+
+    /**
+     * Trampoline utility for tail-recursive optimization
+     * Prevents stack overflow in recursive battle simulations
+     */
+    private static abstract class Trampoline<T> {
+        public abstract T get();
+        public abstract Trampoline<T> jump();
+        public abstract boolean isComplete();
+
+        public static <T> Trampoline<T> done(final T result) {
+            return new Trampoline<T>() {
+                @Override
+                public T get() { return result; }
+                @Override
+                public Trampoline<T> jump() { return this; }
+                @Override
+                public boolean isComplete() { return true; }
+            };
+        }
+
+        public static <T> Trampoline<T> more(final Supplier<Trampoline<T>> supplier) {
+            return new Trampoline<T>() {
+                @Override
+                public T get() { throw new RuntimeException("Not done yet"); }
+                @Override
+                public Trampoline<T> jump() { return supplier.get(); }
+                @Override
+                public boolean isComplete() { return false; }
+            };
+        }
+
+        public T execute() {
+            Trampoline<T> trampoline = this;
+            while (!trampoline.isComplete()) {
+                trampoline = trampoline.jump();
+            }
+            return trampoline.get();
+        }
     }
 
     /**
@@ -219,7 +260,7 @@ public class Exercise2 {
     }
 
     /**
-     * Simulate a complete battle until one side cannot continue
+     * Simulate a complete battle until one side cannot continue using functional recursion with trampoline
      * @param attackerArmy the attacking army
      * @param defenderArmy the defending army
      * @param random the random number generator
@@ -230,21 +271,31 @@ public class Exercise2 {
         Objects.requireNonNull(defenderArmy, "Defender army cannot be null");
         Objects.requireNonNull(random, "Random generator cannot be null");
 
-        Army currentAttacker = attackerArmy;
-        Army currentDefender = defenderArmy;
-
-        // Continue battle until attacker can't attack or defender is eliminated
-        while (canAttack(currentAttacker) && canDefend(currentDefender)) {
-            BattleResult result = simulateSingleBattle(currentAttacker, currentDefender, random);
-            currentAttacker = result.getAttackerArmy();
-            currentDefender = result.getDefenderArmy();
-        }
-
-        return new BattleResult(currentAttacker, currentDefender);
+        return simulateCompleteBattleTrampoline(attackerArmy, defenderArmy, random).execute();
     }
 
     /**
-     * Estimate the probability that the attacker wins through Monte Carlo simulation
+     * Tail-recursive implementation of complete battle simulation using trampoline pattern
+     */
+    private Trampoline<BattleResult> simulateCompleteBattleTrampoline(Army attackerArmy, Army defenderArmy, Random random) {
+        // Base case: battle is over
+        if (!canAttack(attackerArmy) || !canDefend(defenderArmy)) {
+            return Trampoline.done(new BattleResult(attackerArmy, defenderArmy));
+        }
+
+        // Recursive case: continue battle
+        return Trampoline.more(() -> {
+            BattleResult singleBattleResult = simulateSingleBattle(attackerArmy, defenderArmy, random);
+            return simulateCompleteBattleTrampoline(
+                singleBattleResult.getAttackerArmy(),
+                singleBattleResult.getDefenderArmy(),
+                random
+            );
+        });
+    }
+
+    /**
+     * Estimate the probability that the attacker wins through Monte Carlo simulation using functional approach
      * @param attackerArmy the attacking army
      * @param defenderArmy the defending army
      * @param simulations the number of simulations to run
@@ -265,10 +316,13 @@ public class Exercise2 {
         Objects.requireNonNull(defenderArmy, "Defender army cannot be null");
         Objects.requireNonNull(random, "Random generator cannot be null");
 
-        long attackerWins = IntStream.range(0, simulations)
+        // Functional Monte Carlo simulation using streams and higher-order functions
+        var attackerWins = IntStream.range(0, simulations)
             .mapToObj(i -> simulateCompleteBattle(attackerArmy, defenderArmy, random))
-            .mapToLong(result -> result.getDefenderArmy().getSize() == 0 ? 1 : 0)
-            .sum();
+            .map(BattleResult::getDefenderArmy)
+            .map(Army::getSize)
+            .filter(size -> size == 0) // Attacker wins when defender is eliminated
+            .count();
 
         return (double) attackerWins / simulations;
     }

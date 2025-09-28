@@ -183,7 +183,7 @@ public class Exercise1 {
     }
 
     /**
-     * Resolve a complete battle between attacker and defender dice
+     * Resolve a complete battle between attacker and defender dice using functional approach
      * @param attackerRolls the attacker's dice rolls
      * @param defenderRolls the defender's dice rolls
      * @return BattleOutcome with losses for each side
@@ -192,25 +192,21 @@ public class Exercise1 {
         Objects.requireNonNull(attackerRolls, "Attacker rolls cannot be null");
         Objects.requireNonNull(defenderRolls, "Defender rolls cannot be null");
 
-        // Sort both lists in descending order
-        List<DieValue> sortedAttackerRolls = sortDiceDescending(attackerRolls);
-        List<DieValue> sortedDefenderRolls = sortDiceDescending(defenderRolls);
+        // Sort both lists in descending order using functional composition
+        var sortedAttackerRolls = sortDiceDescending(attackerRolls);
+        var sortedDefenderRolls = sortDiceDescending(defenderRolls);
 
-        int attackerLosses = 0;
-        int defenderLosses = 0;
+        // Create pairs of dice for comparison and resolve battles functionally
+        var battleResults = IntStream.range(0, Math.min(sortedAttackerRolls.size(), sortedDefenderRolls.size()))
+            .mapToObj(i -> compareDice(sortedAttackerRolls.get(i), sortedDefenderRolls.get(i)))
+            .toList();
 
-        // Compare dice pairwise, starting with the highest
-        int comparisons = Math.min(sortedAttackerRolls.size(), sortedDefenderRolls.size());
+        // Count losses using functional aggregation
+        var defenderLosses = (int) battleResults.stream()
+            .filter(result -> result == BattleResult.ATTACKER_WINS)
+            .count();
 
-        for (int i = 0; i < comparisons; i++) {
-            BattleResult result = compareDice(sortedAttackerRolls.get(i), sortedDefenderRolls.get(i));
-
-            if (result == BattleResult.ATTACKER_WINS) {
-                defenderLosses++;
-            } else {
-                attackerLosses++;
-            }
-        }
+        var attackerLosses = battleResults.size() - defenderLosses;
 
         return new BattleOutcome(attackerLosses, defenderLosses);
     }
