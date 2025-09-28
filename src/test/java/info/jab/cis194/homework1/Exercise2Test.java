@@ -57,8 +57,16 @@ class Exercise2Test {
         @Test
         @DisplayName("Should generate correct sequence for 2 discs")
         void shouldGenerateCorrectSequenceForTwoDiscs() {
-            List<Exercise2.Move> moves = exercise.hanoi(2, "a", "b", "c");
+            // Given
+            int numberOfDiscs = 2;
+            String sourcePeg = "a";
+            String destinationPeg = "b";
+            String auxiliaryPeg = "c";
 
+            // When
+            List<Exercise2.Move> moves = exercise.hanoi(numberOfDiscs, sourcePeg, destinationPeg, auxiliaryPeg);
+
+            // Then
             assertThat(moves).hasSize(3);
             assertThat(moves.get(0)).isEqualTo(new Exercise2.Move("a", "c"));
             assertThat(moves.get(1)).isEqualTo(new Exercise2.Move("a", "b"));
