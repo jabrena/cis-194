@@ -600,7 +600,7 @@ public class Exercise3 {
     // Generic traversable methods
 
     /**
-     * Traverse List with Maybe
+     * Traverse List with Maybe using functional approach
      */
     public static <A, B> Maybe<List<B>> traverse(Function<A, Maybe<B>> f, List<A> list) {
         if (f == null) {
@@ -610,22 +610,29 @@ public class Exercise3 {
             throw new IllegalArgumentException("List cannot be null");
         }
 
-        Maybe<List<B>> result = pure(new ArrayList<>());
-
-        for (A item : list) {
-            Maybe<B> maybeB = f.apply(item);
-            if (maybeB.isNothing()) {
-                return nothing();
-            }
-
-            result = liftA2(list1 -> item1 -> {
-                List<B> newList = new ArrayList<>(list1);
-                newList.add(item1);
-                return newList;
-            }, result, maybeB);
-        }
-
-        return result;
+        return list.stream()
+            .map(f)
+            .reduce(
+                pure(new ArrayList<B>()),
+                (accMaybe, itemMaybe) -> liftA2(
+                    acc -> item -> {
+                        List<B> newList = new ArrayList<>(acc);
+                        newList.add(item);
+                        return newList;
+                    },
+                    accMaybe,
+                    itemMaybe
+                ),
+                (maybe1, maybe2) -> liftA2(
+                    list1 -> list2 -> {
+                        List<B> combined = new ArrayList<>(list1);
+                        combined.addAll(list2);
+                        return combined;
+                    },
+                    maybe1,
+                    maybe2
+                )
+            );
     }
 
     /**
@@ -647,7 +654,7 @@ public class Exercise3 {
     public static record Pair<A, B>(A first, B second) {}
 
     /**
-     * Generic filter function
+     * Generic filter function using functional approach
      */
     public static <A> List<A> filter(Predicate<A> predicate, List<A> list) {
         if (predicate == null) {
@@ -657,17 +664,13 @@ public class Exercise3 {
             throw new IllegalArgumentException("List cannot be null");
         }
 
-        List<A> result = new ArrayList<>();
-        for (A item : list) {
-            if (predicate.test(item)) {
-                result.add(item);
-            }
-        }
-        return result;
+        return list.stream()
+            .filter(predicate)
+            .toList();
     }
 
     /**
-     * Generic partition function
+     * Generic partition function using functional approach
      */
     public static <A> Pair<List<A>, List<A>> partition(Predicate<A> predicate, List<A> list) {
         if (predicate == null) {
@@ -677,22 +680,19 @@ public class Exercise3 {
             throw new IllegalArgumentException("List cannot be null");
         }
 
-        List<A> trues = new ArrayList<>();
-        List<A> falses = new ArrayList<>();
+        List<A> trues = list.stream()
+            .filter(predicate)
+            .toList();
 
-        for (A item : list) {
-            if (predicate.test(item)) {
-                trues.add(item);
-            } else {
-                falses.add(item);
-            }
-        }
+        List<A> falses = list.stream()
+            .filter(predicate.negate())
+            .toList();
 
         return new Pair<>(trues, falses);
     }
 
     /**
-     * MapMaybe - apply function that may fail, collect successes
+     * MapMaybe - apply function that may fail, collect successes using functional approach
      */
     public static <A, B> List<B> mapMaybe(Function<A, Maybe<B>> f, List<A> list) {
         if (f == null) {
@@ -702,14 +702,11 @@ public class Exercise3 {
             throw new IllegalArgumentException("List cannot be null");
         }
 
-        List<B> result = new ArrayList<>();
-        for (A item : list) {
-            Maybe<B> maybeB = f.apply(item);
-            if (maybeB.isJust()) {
-                result.add(maybeB.get());
-            }
-        }
-        return result;
+        return list.stream()
+            .map(f)
+            .filter(Maybe::isJust)
+            .map(Maybe::get)
+            .toList();
     }
 
     // Utility methods for demonstrating type class laws

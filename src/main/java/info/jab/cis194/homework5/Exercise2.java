@@ -3,7 +3,10 @@ package info.jab.cis194.homework5;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 /**
  * Exercise 2: Polymorphic Functions and Type Classes
@@ -335,7 +338,7 @@ public class Exercise2 {
     // Polymorphic functions
 
     /**
-     * Find the maximum element in a list
+     * Find the maximum element in a list using functional approach
      */
     @SuppressWarnings("unchecked")
     public static <T> Optional<T> maximum(List<T> list) {
@@ -343,25 +346,16 @@ public class Exercise2 {
             throw new IllegalArgumentException("List cannot be null");
         }
 
-        if (list.isEmpty()) {
-            return Optional.empty();
-        }
-
-        T first = list.get(0);
-        Ord<T> ord = getOrdInstance((Class<T>) first.getClass());
-
-        T max = first;
-        for (T element : list) {
-            if (ord.gt(element, max)) {
-                max = element;
-            }
-        }
-
-        return Optional.of(max);
+        return list.stream()
+            .reduce((a, b) -> {
+                @SuppressWarnings("unchecked")
+                Ord<T> ord = getOrdInstance((Class<T>) a.getClass());
+                return ord.gt(a, b) ? a : b;
+            });
     }
 
     /**
-     * Sort a list in ascending order
+     * Sort a list in ascending order using functional approach
      */
     @SuppressWarnings("unchecked")
     public static <T> List<T> sort(List<T> list) {
@@ -369,21 +363,17 @@ public class Exercise2 {
             throw new IllegalArgumentException("List cannot be null");
         }
 
-        if (list.isEmpty()) {
-            return new ArrayList<>();
-        }
-
-        T first = list.get(0);
-        Ord<T> ord = getOrdInstance((Class<T>) first.getClass());
-
-        List<T> result = new ArrayList<>(list);
-        result.sort(ord::compare);
-
-        return result;
+        return list.stream()
+            .sorted((a, b) -> {
+                @SuppressWarnings("unchecked")
+                Ord<T> ord = getOrdInstance((Class<T>) a.getClass());
+                return ord.compare(a, b);
+            })
+            .toList();
     }
 
     /**
-     * Check if an element is in a list
+     * Check if an element is in a list using functional approach
      */
     @SuppressWarnings("unchecked")
     public static <T> boolean elem(T element, List<T> list) {
@@ -396,17 +386,12 @@ public class Exercise2 {
 
         Eq<T> eq = getEqInstance((Class<T>) element.getClass());
 
-        for (T item : list) {
-            if (eq.eq(element, item)) {
-                return true;
-            }
-        }
-
-        return false;
+        return list.stream()
+            .anyMatch(item -> eq.eq(element, item));
     }
 
     /**
-     * Remove duplicates from a list, preserving order
+     * Remove duplicates from a list, preserving order using functional approach
      */
     @SuppressWarnings("unchecked")
     public static <T> List<T> nub(List<T> list) {
@@ -414,29 +399,29 @@ public class Exercise2 {
             throw new IllegalArgumentException("List cannot be null");
         }
 
-        if (list.isEmpty()) {
-            return new ArrayList<>();
-        }
+        return list.stream()
+            .reduce(
+                new ArrayList<T>(),
+                (acc, element) -> {
+                    @SuppressWarnings("unchecked")
+                    Eq<T> eq = getEqInstance((Class<T>) element.getClass());
 
-        T first = list.get(0);
-        Eq<T> eq = getEqInstance((Class<T>) first.getClass());
+                    boolean alreadyExists = acc.stream()
+                        .anyMatch(existing -> eq.eq(element, existing));
 
-        List<T> result = new ArrayList<>();
-
-        for (T element : list) {
-            boolean found = false;
-            for (T existing : result) {
-                if (eq.eq(element, existing)) {
-                    found = true;
-                    break;
+                    if (!alreadyExists) {
+                        ArrayList<T> newAcc = new ArrayList<>(acc);
+                        newAcc.add(element);
+                        return newAcc;
+                    }
+                    return acc;
+                },
+                (list1, list2) -> {
+                    ArrayList<T> combined = new ArrayList<>(list1);
+                    combined.addAll(list2);
+                    return combined;
                 }
-            }
-            if (!found) {
-                result.add(element);
-            }
-        }
-
-        return result;
+            );
     }
 
     /**
@@ -473,33 +458,23 @@ public class Exercise2 {
     // Advanced polymorphic functions demonstrating type class constraints
 
     /**
-     * Generic minimum function
+     * Generic minimum function using functional approach
      */
     public static <T> Optional<T> minimum(List<T> list) {
         if (list == null) {
             throw new IllegalArgumentException("List cannot be null");
         }
 
-        if (list.isEmpty()) {
-            return Optional.empty();
-        }
-
-        T first = list.get(0);
-        @SuppressWarnings("unchecked")
-        Ord<T> ord = getOrdInstance((Class<T>) first.getClass());
-
-        T min = first;
-        for (T element : list) {
-            if (ord.lt(element, min)) {
-                min = element;
-            }
-        }
-
-        return Optional.of(min);
+        return list.stream()
+            .reduce((a, b) -> {
+                @SuppressWarnings("unchecked")
+                Ord<T> ord = getOrdInstance((Class<T>) a.getClass());
+                return ord.lt(a, b) ? a : b;
+            });
     }
 
     /**
-     * Generic function to check if a list is sorted
+     * Generic function to check if a list is sorted using functional approach
      */
     @SuppressWarnings("unchecked")
     public static <T> boolean isSorted(List<T> list) {
@@ -511,20 +486,18 @@ public class Exercise2 {
             return true;
         }
 
-        T first = list.get(0);
-        Ord<T> ord = getOrdInstance((Class<T>) first.getClass());
-
-        for (int i = 1; i < list.size(); i++) {
-            if (ord.gt(list.get(i - 1), list.get(i))) {
-                return false;
-            }
-        }
-
-        return true;
+        return IntStream.range(0, list.size() - 1)
+            .allMatch(i -> {
+                T current = list.get(i);
+                T next = list.get(i + 1);
+                @SuppressWarnings("unchecked")
+                Ord<T> ord = getOrdInstance((Class<T>) current.getClass());
+                return ord.lte(current, next);
+            });
     }
 
     /**
-     * Generic function to insert an element into a sorted list
+     * Generic function to insert an element into a sorted list using functional approach
      */
     @SuppressWarnings("unchecked")
     public static <T> List<T> insert(T element, List<T> sortedList) {
@@ -535,45 +508,49 @@ public class Exercise2 {
             throw new IllegalArgumentException("List cannot be null");
         }
 
-        List<T> result = new ArrayList<>();
-
         if (sortedList.isEmpty()) {
-            result.add(element);
-            return result;
+            return List.of(element);
         }
 
         Ord<T> ord = getOrdInstance((Class<T>) element.getClass());
-        boolean inserted = false;
 
-        for (T item : sortedList) {
-            if (!inserted && ord.lte(element, item)) {
-                result.add(element);
-                inserted = true;
-            }
-            result.add(item);
-        }
+        // Find the insertion point
+        int insertionIndex = IntStream.range(0, sortedList.size())
+            .filter(i -> ord.lte(element, sortedList.get(i)))
+            .findFirst()
+            .orElse(sortedList.size());
 
-        if (!inserted) {
-            result.add(element);
-        }
+        // Build result functionally using streams
+        List<T> beforeInsertion = sortedList.stream()
+            .limit(insertionIndex)
+            .toList();
 
-        return result;
+        List<T> afterInsertion = sortedList.stream()
+            .skip(insertionIndex)
+            .toList();
+
+        return Stream.of(
+                beforeInsertion.stream(),
+                Stream.of(element),
+                afterInsertion.stream()
+            )
+            .flatMap(Function.identity())
+            .toList();
     }
 
     /**
-     * Insertion sort implementation using type class constraints
+     * Insertion sort implementation using functional approach
      */
     public static <T> List<T> insertionSort(List<T> list) {
         if (list == null) {
             throw new IllegalArgumentException("List cannot be null");
         }
 
-        List<T> result = new ArrayList<>();
-
-        for (T element : list) {
-            result = insert(element, result);
-        }
-
-        return result;
+        return list.stream()
+            .reduce(
+                List.<T>of(),
+                (sortedAcc, element) -> insert(element, sortedAcc),
+                (list1, list2) -> Stream.concat(list1.stream(), list2.stream()).toList()
+            );
     }
 }
