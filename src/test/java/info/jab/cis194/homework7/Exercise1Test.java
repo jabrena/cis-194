@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.*;
 
 /**
  * Test class for Exercise 1: JoinList implementation
@@ -17,116 +17,148 @@ public class Exercise1Test {
 
     @Test
     public void testEmptyJoinList() {
+        // Given
+        // No setup needed for empty JoinList creation
+
+        // When
         Exercise1.JoinList<String> empty = Exercise1.empty();
-        assertNotNull(empty, "Empty JoinList should not be null");
-        assertTrue(empty.isEmpty(), "Empty JoinList should be empty");
-        assertEquals(0, empty.size(), "Empty JoinList should have size 0");
+
+        // Then
+        assertThat(empty).isNotNull();
+        assertThat(empty.isEmpty()).isTrue();
+        assertThat(empty.size()).isZero();
     }
 
     @Test
     public void testSingleJoinList() {
-        Exercise1.JoinList<String> single = Exercise1.single("hello");
-        assertNotNull(single, "Single JoinList should not be null");
-        assertFalse(single.isEmpty(), "Single JoinList should not be empty");
-        assertEquals(1, single.size(), "Single JoinList should have size 1");
+        // Given
+        String element = "hello";
+
+        // When
+        Exercise1.JoinList<String> single = Exercise1.single(element);
+
+        // Then
+        assertThat(single).isNotNull();
+        assertThat(single.isEmpty()).isFalse();
+        assertThat(single.size()).isEqualTo(1);
     }
 
     @Test
     public void testJoinListConcatenation() {
+        // Given
         Exercise1.JoinList<String> list1 = Exercise1.single("hello");
         Exercise1.JoinList<String> list2 = Exercise1.single("world");
 
+        // When
         Exercise1.JoinList<String> joined = list1.append(list2);
 
-        assertNotNull(joined, "Joined JoinList should not be null");
-        assertFalse(joined.isEmpty(), "Joined JoinList should not be empty");
-        assertEquals(2, joined.size(), "Joined JoinList should have size 2");
+        // Then
+        assertThat(joined).isNotNull();
+        assertThat(joined.isEmpty()).isFalse();
+        assertThat(joined.size()).isEqualTo(2);
     }
 
     @Test
     public void testJoinListToList() {
+        // Given
         Exercise1.JoinList<String> list1 = Exercise1.single("hello");
         Exercise1.JoinList<String> list2 = Exercise1.single("world");
         Exercise1.JoinList<String> list3 = Exercise1.single("!");
-
         Exercise1.JoinList<String> joined = list1.append(list2).append(list3);
+
+        // When
         List<String> result = joined.toList();
 
+        // Then
         List<String> expected = Arrays.asList("hello", "world", "!");
-        assertEquals(expected, result, "JoinList should convert to correct list");
+        assertThat(result).isEqualTo(expected);
     }
 
     @Test
     public void testJoinListFromList() {
+        // Given
         List<String> input = Arrays.asList("a", "b", "c", "d");
+
+        // When
         Exercise1.JoinList<String> joinList = Exercise1.fromList(input);
 
-        assertNotNull(joinList, "JoinList from list should not be null");
-        assertEquals(4, joinList.size(), "JoinList should have correct size");
+        // Then
+        assertThat(joinList).isNotNull();
+        assertThat(joinList.size()).isEqualTo(4);
 
         List<String> result = joinList.toList();
-        assertEquals(input, result, "Converting back to list should preserve order");
+        assertThat(result).isEqualTo(input);
     }
 
     @Test
     public void testJoinListIndexing() {
+        // Given
         List<String> input = Arrays.asList("first", "second", "third", "fourth");
         Exercise1.JoinList<String> joinList = Exercise1.fromList(input);
 
-        assertEquals("first", joinList.indexJ(0), "Should get correct element at index 0");
-        assertEquals("second", joinList.indexJ(1), "Should get correct element at index 1");
-        assertEquals("third", joinList.indexJ(2), "Should get correct element at index 2");
-        assertEquals("fourth", joinList.indexJ(3), "Should get correct element at index 3");
+        // When & Then
+        assertThat(joinList.indexJ(0)).isEqualTo("first");
+        assertThat(joinList.indexJ(1)).isEqualTo("second");
+        assertThat(joinList.indexJ(2)).isEqualTo("third");
+        assertThat(joinList.indexJ(3)).isEqualTo("fourth");
     }
 
     @Test
     public void testJoinListIndexingOutOfBounds() {
+        // Given
         Exercise1.JoinList<String> joinList = Exercise1.single("test");
 
-        assertThrows(IndexOutOfBoundsException.class, () -> {
-            joinList.indexJ(-1);
-        }, "Should throw exception for negative index");
+        // When & Then
+        assertThatThrownBy(() -> joinList.indexJ(-1))
+            .isInstanceOf(IndexOutOfBoundsException.class);
 
-        assertThrows(IndexOutOfBoundsException.class, () -> {
-            joinList.indexJ(1);
-        }, "Should throw exception for index >= size");
+        assertThatThrownBy(() -> joinList.indexJ(1))
+            .isInstanceOf(IndexOutOfBoundsException.class);
     }
 
     @Test
     public void testJoinListDropJ() {
+        // Given
         List<String> input = Arrays.asList("a", "b", "c", "d", "e");
         Exercise1.JoinList<String> joinList = Exercise1.fromList(input);
 
+        // When
         Exercise1.JoinList<String> dropped = joinList.dropJ(2);
         List<String> result = dropped.toList();
 
+        // Then
         List<String> expected = Arrays.asList("c", "d", "e");
-        assertEquals(expected, result, "dropJ should remove first n elements");
+        assertThat(result).isEqualTo(expected);
     }
 
     @Test
     public void testJoinListTakeJ() {
+        // Given
         List<String> input = Arrays.asList("a", "b", "c", "d", "e");
         Exercise1.JoinList<String> joinList = Exercise1.fromList(input);
 
+        // When
         Exercise1.JoinList<String> taken = joinList.takeJ(3);
         List<String> result = taken.toList();
 
+        // Then
         List<String> expected = Arrays.asList("a", "b", "c");
-        assertEquals(expected, result, "takeJ should take first n elements");
+        assertThat(result).isEqualTo(expected);
     }
 
     @Test
     public void testEmptyJoinListOperations() {
+        // Given
         Exercise1.JoinList<String> empty = Exercise1.empty();
 
-        assertEquals(0, empty.size(), "Empty list should have size 0");
-        assertTrue(empty.toList().isEmpty(), "Empty list should convert to empty list");
+        // When & Then
+        assertThat(empty.size()).isZero();
+        assertThat(empty.toList()).isEmpty();
 
         Exercise1.JoinList<String> droppedEmpty = empty.dropJ(5);
-        assertTrue(droppedEmpty.isEmpty(), "Dropping from empty should remain empty");
+        assertThat(droppedEmpty.isEmpty()).isTrue();
 
         Exercise1.JoinList<String> takenEmpty = empty.takeJ(5);
-        assertTrue(takenEmpty.isEmpty(), "Taking from empty should remain empty");
+        assertThat(takenEmpty.isEmpty()).isTrue();
     }
 }
