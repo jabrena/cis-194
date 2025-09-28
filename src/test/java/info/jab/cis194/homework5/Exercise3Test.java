@@ -453,10 +453,13 @@ class Exercise3Test {
         void shouldHandleNullInFmapCorrectly() {
             // Given
             Function<Integer, String> nullFunction = null;
-            List<Integer> list = List.of(1, 2, 3);
+            List<Integer> validList = List.of(1, 2, 3);
 
-            // When & Then
-            assertThatThrownBy(() -> Exercise3.fmap(nullFunction, list))
+            // When
+            var throwableAssert = assertThatThrownBy(() -> Exercise3.fmap(nullFunction, validList));
+
+            // Then
+            throwableAssert
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Function cannot be null");
         }
@@ -466,9 +469,13 @@ class Exercise3Test {
         void shouldHandleNullListInFoldrCorrectly() {
             // Given
             List<Integer> nullList = null;
+            Integer initialValue = 0;
 
-            // When & Then
-            assertThatThrownBy(() -> Exercise3.foldr(Integer::sum, 0, nullList))
+            // When
+            var throwableAssert = assertThatThrownBy(() -> Exercise3.foldr(Integer::sum, initialValue, nullList));
+
+            // Then
+            throwableAssert
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Foldable cannot be null");
         }

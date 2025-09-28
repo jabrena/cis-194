@@ -20,45 +20,63 @@ class Exercise2Test {
         @DisplayName("Should check equality for integers correctly")
         void shouldCheckEqualityForIntegersCorrectly() {
             // Given
-            Integer a = 42;
-            Integer b = 42;
-            Integer c = 24;
+            Integer equalValue1 = 42;
+            Integer equalValue2 = 42;
+            Integer differentValue = 24;
 
-            // When & Then
-            assertThat(Exercise2.eq(a, b)).isTrue();
-            assertThat(Exercise2.eq(a, c)).isFalse();
-            assertThat(Exercise2.neq(a, b)).isFalse();
-            assertThat(Exercise2.neq(a, c)).isTrue();
+            // When
+            boolean areEqual = Exercise2.eq(equalValue1, equalValue2);
+            boolean areDifferent = Exercise2.eq(equalValue1, differentValue);
+            boolean areNotEqual = Exercise2.neq(equalValue1, equalValue2);
+            boolean areNotDifferent = Exercise2.neq(equalValue1, differentValue);
+
+            // Then
+            assertThat(areEqual).isTrue();
+            assertThat(areDifferent).isFalse();
+            assertThat(areNotEqual).isFalse();
+            assertThat(areNotDifferent).isTrue();
         }
 
         @Test
         @DisplayName("Should check equality for strings correctly")
         void shouldCheckEqualityForStringsCorrectly() {
             // Given
-            String a = "hello";
-            String b = "hello";
-            String c = "world";
+            String equalString1 = "hello";
+            String equalString2 = "hello";
+            String differentString = "world";
 
-            // When & Then
-            assertThat(Exercise2.eq(a, b)).isTrue();
-            assertThat(Exercise2.eq(a, c)).isFalse();
-            assertThat(Exercise2.neq(a, b)).isFalse();
-            assertThat(Exercise2.neq(a, c)).isTrue();
+            // When
+            boolean stringsAreEqual = Exercise2.eq(equalString1, equalString2);
+            boolean stringsAreDifferent = Exercise2.eq(equalString1, differentString);
+            boolean stringsAreNotEqual = Exercise2.neq(equalString1, equalString2);
+            boolean stringsAreNotDifferent = Exercise2.neq(equalString1, differentString);
+
+            // Then
+            assertThat(stringsAreEqual).isTrue();
+            assertThat(stringsAreDifferent).isFalse();
+            assertThat(stringsAreNotEqual).isFalse();
+            assertThat(stringsAreNotDifferent).isTrue();
         }
 
         @Test
         @DisplayName("Should check equality for custom objects correctly")
         void shouldCheckEqualityForCustomObjectsCorrectly() {
             // Given
-            Exercise2.Point p1 = new Exercise2.Point(3, 4);
-            Exercise2.Point p2 = new Exercise2.Point(3, 4);
-            Exercise2.Point p3 = new Exercise2.Point(1, 2);
+            Exercise2.Point equalPoint1 = new Exercise2.Point(3, 4);
+            Exercise2.Point equalPoint2 = new Exercise2.Point(3, 4);
+            Exercise2.Point differentPoint = new Exercise2.Point(1, 2);
 
-            // When & Then
-            assertThat(Exercise2.eq(p1, p2)).isTrue();
-            assertThat(Exercise2.eq(p1, p3)).isFalse();
-            assertThat(Exercise2.neq(p1, p2)).isFalse();
-            assertThat(Exercise2.neq(p1, p3)).isTrue();
+            // When
+            boolean pointsAreEqual = Exercise2.eq(equalPoint1, equalPoint2);
+            boolean pointsAreDifferent = Exercise2.eq(equalPoint1, differentPoint);
+            boolean pointsAreNotEqual = Exercise2.neq(equalPoint1, equalPoint2);
+            boolean pointsAreNotDifferent = Exercise2.neq(equalPoint1, differentPoint);
+
+            // Then
+            assertThat(pointsAreEqual).isTrue();
+            assertThat(pointsAreDifferent).isFalse();
+            assertThat(pointsAreNotEqual).isFalse();
+            assertThat(pointsAreNotDifferent).isTrue();
         }
     }
 
@@ -70,44 +88,70 @@ class Exercise2Test {
         @DisplayName("Should compare integers correctly")
         void shouldCompareIntegersCorrectly() {
             // Given
-            Integer a = 10;
-            Integer b = 20;
-            Integer c = 10;
+            Integer smallerValue = 10;
+            Integer largerValue = 20;
+            Integer equalValue = 10;
 
-            // When & Then
-            assertThat(Exercise2.lt(a, b)).isTrue();
-            assertThat(Exercise2.lt(b, a)).isFalse();
-            assertThat(Exercise2.lt(a, c)).isFalse();
+            // When
+            boolean smallerLessThanLarger = Exercise2.lt(smallerValue, largerValue);
+            boolean largerLessThanSmaller = Exercise2.lt(largerValue, smallerValue);
+            boolean equalLessThanEqual = Exercise2.lt(smallerValue, equalValue);
 
-            assertThat(Exercise2.lte(a, b)).isTrue();
-            assertThat(Exercise2.lte(b, a)).isFalse();
-            assertThat(Exercise2.lte(a, c)).isTrue();
+            boolean smallerLessThanOrEqualLarger = Exercise2.lte(smallerValue, largerValue);
+            boolean largerLessThanOrEqualSmaller = Exercise2.lte(largerValue, smallerValue);
+            boolean equalLessThanOrEqualEqual = Exercise2.lte(smallerValue, equalValue);
 
-            assertThat(Exercise2.gt(a, b)).isFalse();
-            assertThat(Exercise2.gt(b, a)).isTrue();
-            assertThat(Exercise2.gt(a, c)).isFalse();
+            boolean smallerGreaterThanLarger = Exercise2.gt(smallerValue, largerValue);
+            boolean largerGreaterThanSmaller = Exercise2.gt(largerValue, smallerValue);
+            boolean equalGreaterThanEqual = Exercise2.gt(smallerValue, equalValue);
 
-            assertThat(Exercise2.gte(a, b)).isFalse();
-            assertThat(Exercise2.gte(b, a)).isTrue();
-            assertThat(Exercise2.gte(a, c)).isTrue();
+            boolean smallerGreaterThanOrEqualLarger = Exercise2.gte(smallerValue, largerValue);
+            boolean largerGreaterThanOrEqualSmaller = Exercise2.gte(largerValue, smallerValue);
+            boolean equalGreaterThanOrEqualEqual = Exercise2.gte(smallerValue, equalValue);
+
+            // Then
+            assertThat(smallerLessThanLarger).isTrue();
+            assertThat(largerLessThanSmaller).isFalse();
+            assertThat(equalLessThanEqual).isFalse();
+
+            assertThat(smallerLessThanOrEqualLarger).isTrue();
+            assertThat(largerLessThanOrEqualSmaller).isFalse();
+            assertThat(equalLessThanOrEqualEqual).isTrue();
+
+            assertThat(smallerGreaterThanLarger).isFalse();
+            assertThat(largerGreaterThanSmaller).isTrue();
+            assertThat(equalGreaterThanEqual).isFalse();
+
+            assertThat(smallerGreaterThanOrEqualLarger).isFalse();
+            assertThat(largerGreaterThanOrEqualSmaller).isTrue();
+            assertThat(equalGreaterThanOrEqualEqual).isTrue();
         }
 
         @Test
         @DisplayName("Should compare strings correctly")
         void shouldCompareStringsCorrectly() {
             // Given
-            String a = "apple";
-            String b = "banana";
-            String c = "apple";
+            String earlierString = "apple";
+            String laterString = "banana";
+            String equalString = "apple";
 
-            // When & Then
-            assertThat(Exercise2.lt(a, b)).isTrue();
-            assertThat(Exercise2.lt(b, a)).isFalse();
-            assertThat(Exercise2.lt(a, c)).isFalse();
+            // When
+            boolean earlierLessThanLater = Exercise2.lt(earlierString, laterString);
+            boolean laterLessThanEarlier = Exercise2.lt(laterString, earlierString);
+            boolean equalLessThanEqual = Exercise2.lt(earlierString, equalString);
 
-            assertThat(Exercise2.gte(b, a)).isTrue();
-            assertThat(Exercise2.gte(a, b)).isFalse();
-            assertThat(Exercise2.gte(a, c)).isTrue();
+            boolean laterGreaterThanOrEqualEarlier = Exercise2.gte(laterString, earlierString);
+            boolean earlierGreaterThanOrEqualLater = Exercise2.gte(earlierString, laterString);
+            boolean equalGreaterThanOrEqualEqual = Exercise2.gte(earlierString, equalString);
+
+            // Then
+            assertThat(earlierLessThanLater).isTrue();
+            assertThat(laterLessThanEarlier).isFalse();
+            assertThat(equalLessThanEqual).isFalse();
+
+            assertThat(laterGreaterThanOrEqualEarlier).isTrue();
+            assertThat(earlierGreaterThanOrEqualLater).isFalse();
+            assertThat(equalGreaterThanOrEqualEqual).isTrue();
         }
     }
 
@@ -273,12 +317,22 @@ class Exercise2Test {
         void shouldImplementElemFunctionCorrectly() {
             // Given
             List<Integer> numbers = List.of(1, 2, 3, 4, 5);
+            Integer existingElement = 3;
+            Integer nonExistingElement = 6;
+            Integer firstElement = 1;
+            Integer lastElement = 5;
 
-            // When & Then
-            assertThat(Exercise2.elem(3, numbers)).isTrue();
-            assertThat(Exercise2.elem(6, numbers)).isFalse();
-            assertThat(Exercise2.elem(1, numbers)).isTrue();
-            assertThat(Exercise2.elem(5, numbers)).isTrue();
+            // When
+            boolean existingElementFound = Exercise2.elem(existingElement, numbers);
+            boolean nonExistingElementFound = Exercise2.elem(nonExistingElement, numbers);
+            boolean firstElementFound = Exercise2.elem(firstElement, numbers);
+            boolean lastElementFound = Exercise2.elem(lastElement, numbers);
+
+            // Then
+            assertThat(existingElementFound).isTrue();
+            assertThat(nonExistingElementFound).isFalse();
+            assertThat(firstElementFound).isTrue();
+            assertThat(lastElementFound).isTrue();
         }
 
         @Test
@@ -286,11 +340,19 @@ class Exercise2Test {
         void shouldImplementElemFunctionForStringsCorrectly() {
             // Given
             List<String> words = List.of("apple", "banana", "cherry");
+            String existingWord = "banana";
+            String nonExistingWord = "grape";
+            String firstWord = "apple";
 
-            // When & Then
-            assertThat(Exercise2.elem("banana", words)).isTrue();
-            assertThat(Exercise2.elem("grape", words)).isFalse();
-            assertThat(Exercise2.elem("apple", words)).isTrue();
+            // When
+            boolean existingWordFound = Exercise2.elem(existingWord, words);
+            boolean nonExistingWordFound = Exercise2.elem(nonExistingWord, words);
+            boolean firstWordFound = Exercise2.elem(firstWord, words);
+
+            // Then
+            assertThat(existingWordFound).isTrue();
+            assertThat(nonExistingWordFound).isFalse();
+            assertThat(firstWordFound).isTrue();
         }
 
         @Test
@@ -352,15 +414,21 @@ class Exercise2Test {
         @DisplayName("Should compare points correctly")
         void shouldComparePointsCorrectly() {
             // Given
-            Exercise2.Point p1 = new Exercise2.Point(1, 2);
-            Exercise2.Point p2 = new Exercise2.Point(3, 4);
-            Exercise2.Point p3 = new Exercise2.Point(1, 2);
+            Exercise2.Point smallerPoint = new Exercise2.Point(1, 2);
+            Exercise2.Point largerPoint = new Exercise2.Point(3, 4);
+            Exercise2.Point equalPoint = new Exercise2.Point(1, 2);
 
-            // When & Then
-            assertThat(Exercise2.lt(p1, p2)).isTrue();
-            assertThat(Exercise2.lt(p2, p1)).isFalse();
-            assertThat(Exercise2.eq(p1, p3)).isTrue();
-            assertThat(Exercise2.eq(p1, p2)).isFalse();
+            // When
+            boolean smallerLessThanLarger = Exercise2.lt(smallerPoint, largerPoint);
+            boolean largerLessThanSmaller = Exercise2.lt(largerPoint, smallerPoint);
+            boolean pointsAreEqual = Exercise2.eq(smallerPoint, equalPoint);
+            boolean pointsAreDifferent = Exercise2.eq(smallerPoint, largerPoint);
+
+            // Then
+            assertThat(smallerLessThanLarger).isTrue();
+            assertThat(largerLessThanSmaller).isFalse();
+            assertThat(pointsAreEqual).isTrue();
+            assertThat(pointsAreDifferent).isFalse();
         }
 
         @Test
@@ -386,11 +454,14 @@ class Exercise2Test {
         @DisplayName("Should handle null values in equality checks")
         void shouldHandleNullValuesInEqualityChecks() {
             // Given
-            Integer a = null;
-            Integer b = 42;
+            Integer nullValue = null;
+            Integer validValue = 42;
 
-            // When & Then
-            assertThatThrownBy(() -> Exercise2.eq(a, b))
+            // When
+            var throwableAssert = assertThatThrownBy(() -> Exercise2.eq(nullValue, validValue));
+
+            // Then
+            throwableAssert
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Arguments cannot be null");
         }
@@ -401,8 +472,11 @@ class Exercise2Test {
             // Given
             List<Integer> nullList = null;
 
-            // When & Then
-            assertThatThrownBy(() -> Exercise2.maximum(nullList))
+            // When
+            var throwableAssert = assertThatThrownBy(() -> Exercise2.maximum(nullList));
+
+            // Then
+            throwableAssert
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("List cannot be null");
         }

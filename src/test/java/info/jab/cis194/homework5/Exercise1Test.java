@@ -337,10 +337,13 @@ class Exercise1Test {
         @DisplayName("Should handle null expressions gracefully")
         void shouldHandleNullExpressionsGracefully() {
             // Given
-            Expr expr = null;
+            Expr nullExpr = null;
 
-            // When & Then
-            assertThatThrownBy(() -> Exercise1.eval(expr))
+            // When
+            var throwableAssert = assertThatThrownBy(() -> Exercise1.eval(nullExpr));
+
+            // Then
+            throwableAssert
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Expression cannot be null");
         }
@@ -349,10 +352,13 @@ class Exercise1Test {
         @DisplayName("Should handle null in format gracefully")
         void shouldHandleNullInFormatGracefully() {
             // Given
-            Expr expr = null;
+            Expr nullExpr = null;
 
-            // When & Then
-            assertThatThrownBy(() -> Exercise1.format(expr))
+            // When
+            var throwableAssert = assertThatThrownBy(() -> Exercise1.format(nullExpr));
+
+            // Then
+            throwableAssert
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Expression cannot be null");
         }
