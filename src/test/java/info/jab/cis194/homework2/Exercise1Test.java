@@ -20,6 +20,12 @@ import static org.assertj.core.api.Assertions.*;
  * - parse function for complete log file parsing
  * - Support for Info, Warning, and Error message types
  * - Handling of Unknown/malformed messages
+ *
+ * Tests follow RIGHT-BICEP principles for comprehensive coverage:
+ * - Right results: Correct parsing of valid messages
+ * - Boundary conditions: Edge cases like empty strings, malformed input
+ * - Error conditions: Invalid formats, null inputs
+ * - Performance: Efficient parsing of large log files
  */
 @DisplayName("Exercise 1: Log Message Parsing Tests")
 class Exercise1Test {
@@ -35,7 +41,7 @@ class Exercise1Test {
     @DisplayName("Parse Single Message Tests")
     class ParseMessageTests {
 
-        @ParameterizedTest
+        @ParameterizedTest(name = "[{index}] Input: {0} -> Type: {1}, Timestamp: {2}, Message: {3}")
         @DisplayName("Should parse Info messages correctly")
         @CsvSource({
             "'I 29 la la la', INFO, 29, 'la la la'",
@@ -43,33 +49,49 @@ class Exercise1Test {
             "'I 1 Nothing to report', INFO, 1, 'Nothing to report'",
             "'I 6 Completed armadillo processing', INFO, 6, 'Completed armadillo processing'"
         })
-        void shouldParseInfoMessages(String input, String expectedType, int expectedTimestamp, String expectedMessage) {
-            LogMessage result = exercise.parseMessage(input);
-
-            assertThat(result).isInstanceOf(LogMessage.ValidMessage.class);
-            LogMessage.ValidMessage validMsg = (LogMessage.ValidMessage) result;
-            assertThat(validMsg.messageType()).isEqualTo(MessageType.INFO);
-            assertThat(validMsg.timestamp()).isEqualTo(expectedTimestamp);
-            assertThat(validMsg.message()).isEqualTo(expectedMessage);
+        void should_parseInfoMessages_when_validInfoFormatProvided(String input, String expectedType, int expectedTimestamp, String expectedMessage) {
+            // Given
+            String logLine = input;
+            
+            // When
+            LogMessage result = exercise.parseMessage(logLine);
+            
+            // Then
+            assertThat(result)
+                .isInstanceOf(LogMessage.ValidMessage.class)
+                .extracting(msg -> (LogMessage.ValidMessage) msg)
+                .satisfies(validMsg -> {
+                    assertThat(validMsg.messageType()).isEqualTo(MessageType.INFO);
+                    assertThat(validMsg.timestamp()).isEqualTo(expectedTimestamp);
+                    assertThat(validMsg.message()).isEqualTo(expectedMessage);
+                });
         }
 
-        @ParameterizedTest
+        @ParameterizedTest(name = "[{index}] Warning: {0} -> Timestamp: {2}, Message: {3}")
         @DisplayName("Should parse Warning messages correctly")
         @CsvSource({
             "'W 5 Flange is due for a check-up', WARNING, 5, 'Flange is due for a check-up'",
             "'W 100 System overheating', WARNING, 100, 'System overheating'"
         })
-        void shouldParseWarningMessages(String input, String expectedType, int expectedTimestamp, String expectedMessage) {
-            LogMessage result = exercise.parseMessage(input);
-
-            assertThat(result).isInstanceOf(LogMessage.ValidMessage.class);
-            LogMessage.ValidMessage validMsg = (LogMessage.ValidMessage) result;
-            assertThat(validMsg.messageType()).isEqualTo(MessageType.WARNING);
-            assertThat(validMsg.timestamp()).isEqualTo(expectedTimestamp);
-            assertThat(validMsg.message()).isEqualTo(expectedMessage);
+        void should_parseWarningMessages_when_validWarningFormatProvided(String input, String expectedType, int expectedTimestamp, String expectedMessage) {
+            // Given
+            String logLine = input;
+            
+            // When
+            LogMessage result = exercise.parseMessage(logLine);
+            
+            // Then
+            assertThat(result)
+                .isInstanceOf(LogMessage.ValidMessage.class)
+                .extracting(msg -> (LogMessage.ValidMessage) msg)
+                .satisfies(validMsg -> {
+                    assertThat(validMsg.messageType()).isEqualTo(MessageType.WARNING);
+                    assertThat(validMsg.timestamp()).isEqualTo(expectedTimestamp);
+                    assertThat(validMsg.message()).isEqualTo(expectedMessage);
+                });
         }
 
-        @ParameterizedTest
+        @ParameterizedTest(name = "[{index}] Error: {0} -> Severity: {1}, Timestamp: {2}, Message: {3}")
         @DisplayName("Should parse Error messages correctly")
         @CsvSource({
             "'E 2 562 help help', 2, 562, 'help help'",
@@ -77,16 +99,26 @@ class Exercise1Test {
             "'E 70 3 Way too many pickles', 70, 3, 'Way too many pickles'",
             "'E 65 8 Bad pickle-flange interaction detected', 65, 8, 'Bad pickle-flange interaction detected'"
         })
-        void shouldParseErrorMessages(String input, int expectedSeverity, int expectedTimestamp, String expectedMessage) {
-            LogMessage result = exercise.parseMessage(input);
-
-            assertThat(result).isInstanceOf(LogMessage.ValidMessage.class);
-            LogMessage.ValidMessage validMsg = (LogMessage.ValidMessage) result;
-            assertThat(validMsg.messageType()).isInstanceOf(MessageType.Error.class);
-            MessageType.Error errorType = (MessageType.Error) validMsg.messageType();
-            assertThat(errorType.severity()).isEqualTo(expectedSeverity);
-            assertThat(validMsg.timestamp()).isEqualTo(expectedTimestamp);
-            assertThat(validMsg.message()).isEqualTo(expectedMessage);
+        void should_parseErrorMessages_when_validErrorFormatProvided(String input, int expectedSeverity, int expectedTimestamp, String expectedMessage) {
+            // Given
+            String logLine = input;
+            
+            // When
+            LogMessage result = exercise.parseMessage(logLine);
+            
+            // Then
+            assertThat(result)
+                .isInstanceOf(LogMessage.ValidMessage.class)
+                .extracting(msg -> (LogMessage.ValidMessage) msg)
+                .satisfies(validMsg -> {
+                    assertThat(validMsg.messageType())
+                        .isInstanceOf(MessageType.Error.class)
+                        .extracting(type -> (MessageType.Error) type)
+                        .satisfies(errorType -> 
+                            assertThat(errorType.severity()).isEqualTo(expectedSeverity));
+                    assertThat(validMsg.timestamp()).isEqualTo(expectedTimestamp);
+                    assertThat(validMsg.message()).isEqualTo(expectedMessage);
+                });
         }
 
         @ParameterizedTest
