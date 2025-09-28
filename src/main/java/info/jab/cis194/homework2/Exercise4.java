@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Exercise 3 & 4 - MessageTree Build and InOrder Functions
+ * Exercise 4 - MessageTree InOrder Function
  * Functional implementation based on CIS-194 Homework 2
  *
  * This implementation follows functional programming principles:
@@ -12,44 +12,11 @@ import java.util.Optional;
  * - Pure functions (no side effects)
  * - Recursive operations
  * - Function composition
+ * - Optional for null safety
  *
- * Exercise 3: build - constructs MessageTree from list of LogMessages
  * Exercise 4: inOrder - performs in-order traversal of MessageTree
  */
-public class Exercise3And4 {
-
-    private final Exercise2 insertHelper = new Exercise2();
-
-    /**
-     * Exercise 3: Build a MessageTree from a list of LogMessages using functional composition.
-     *
-     * This function successively inserts messages into a MessageTree starting with an empty tree.
-     * Unknown messages are ignored (not inserted into the tree).
-     * The resulting tree maintains BST ordering by timestamp.
-     *
-     * @param messages list of LogMessages to build tree from
-     * @return MessageTree containing all valid messages from the list
-     */
-    public MessageTree build(List<LogMessage> messages) {
-        return Optional.ofNullable(messages)
-                .map(List::stream)
-                .orElse(java.util.stream.Stream.empty())
-                .reduce(MessageTree.leaf(),
-                       (tree, message) -> insertHelper.insert(message, tree),
-                       (tree1, tree2) -> tree2); // Combiner not used in sequential stream
-    }
-
-    /**
-     * Alternative implementation using explicit fold/reduce pattern with Optional
-     */
-    public MessageTree buildAlternative(List<LogMessage> messages) {
-        return Optional.ofNullable(messages)
-                .orElse(List.of())
-                .stream()
-                .reduce(MessageTree.leaf(),
-                       (tree, message) -> insertHelper.insert(message, tree),
-                       (tree1, tree2) -> tree2);
-    }
+public class Exercise4 {
 
     /**
      * Exercise 4: Perform in-order traversal of a MessageTree using functional approach.
@@ -106,32 +73,23 @@ public class Exercise3And4 {
      * Alternative implementation using Java streams for concatenation
      */
     public List<LogMessage.ValidMessage> inOrderStream(MessageTree tree) {
-        if (tree == null) {
-            throw new IllegalArgumentException("MessageTree cannot be null");
-        }
+        return Optional.ofNullable(tree)
+                .map(this::inOrderStreamHelper)
+                .orElse(List.of());
+    }
 
+    private List<LogMessage.ValidMessage> inOrderStreamHelper(MessageTree tree) {
         return switch (tree) {
             case MessageTree.Leaf leaf -> List.of();
             case MessageTree.Node node -> {
                 yield java.util.stream.Stream.of(
-                    inOrderStream(node.left()).stream(),
+                    inOrderStreamHelper(node.left()).stream(),
                     java.util.stream.Stream.of(node.message()),
-                    inOrderStream(node.right()).stream()
+                    inOrderStreamHelper(node.right()).stream()
                 ).flatMap(java.util.function.Function.identity())
                  .toList();
             }
         };
-    }
-
-    /**
-     * Utility method to sort a list of LogMessages using functional composition of build + inOrder
-     * This demonstrates the combination of exercises 3 and 4
-     */
-    public List<LogMessage.ValidMessage> sortMessages(List<LogMessage> messages) {
-        return Optional.ofNullable(messages)
-                .map(this::build)
-                .map(this::inOrder)
-                .orElse(List.of());
     }
 
     /**
@@ -142,25 +100,74 @@ public class Exercise3And4 {
     }
 
     /**
-     * Count valid messages in a list (utility method)
-     */
-    public long countValidMessages(List<LogMessage> messages) {
-        return messages.stream()
-                .filter(msg -> msg instanceof LogMessage.ValidMessage)
-                .count();
-    }
-
-    /**
      * Verify that inOrder traversal produces sorted results
      */
     public boolean isInOrderSorted(MessageTree tree) {
         List<LogMessage.ValidMessage> messages = inOrder(tree);
 
-        for (int i = 1; i < messages.size(); i++) {
-            if (messages.get(i - 1).timestamp() > messages.get(i).timestamp()) {
-                return false;
-            }
+        return messages.stream()
+                .mapToInt(LogMessage.ValidMessage::timestamp)
+                .boxed()
+                .reduce(Optional.<Integer>empty(),
+                       (prev, current) -> prev.map(p -> p <= current ? Optional.of(current) : Optional.<Integer>empty())
+                                             .orElse(Optional.of(current)),
+                       (a, b) -> b)
+                .isPresent();
+    }
+
+    /**
+     * Alternative sorting verification using functional approach
+     */
+    public boolean isInOrderSortedFunctional(MessageTree tree) {
+        List<LogMessage.ValidMessage> messages = inOrder(tree);
+
+        if (messages.size() <= 1) {
+            return true;
         }
-        return true;
+
+        return java.util.stream.IntStream.range(1, messages.size())
+                .allMatch(i -> messages.get(i - 1).timestamp() <= messages.get(i).timestamp());
+    }
+
+    /**
+     * Get the number of messages in the tree using inOrder traversal
+     */
+    public int countMessages(MessageTree tree) {
+        return inOrder(tree).size();
+    }
+
+    /**
+     * Find messages within a timestamp range using inOrder traversal
+     */
+    public List<LogMessage.ValidMessage> findMessagesInRange(MessageTree tree, int minTimestamp, int maxTimestamp) {
+        return inOrder(tree).stream()
+                .filter(msg -> msg.timestamp() >= minTimestamp && msg.timestamp() <= maxTimestamp)
+                .toList();
+    }
+
+    /**
+     * Get the first message (earliest timestamp) from the tree
+     */
+    public Optional<LogMessage.ValidMessage> getFirstMessage(MessageTree tree) {
+        return inOrder(tree).stream().findFirst();
+    }
+
+    /**
+     * Get the last message (latest timestamp) from the tree
+     */
+    public Optional<LogMessage.ValidMessage> getLastMessage(MessageTree tree) {
+        List<LogMessage.ValidMessage> messages = inOrder(tree);
+        return messages.isEmpty() ?
+                Optional.empty() :
+                Optional.of(messages.get(messages.size() - 1));
+    }
+
+    /**
+     * Extract only error messages from the tree, maintaining timestamp order
+     */
+    public List<LogMessage.ValidMessage> getErrorMessages(MessageTree tree) {
+        return inOrder(tree).stream()
+                .filter(msg -> msg.messageType() instanceof MessageType.Error)
+                .toList();
     }
 }

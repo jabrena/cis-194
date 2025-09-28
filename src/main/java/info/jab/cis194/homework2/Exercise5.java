@@ -19,7 +19,8 @@ import java.util.stream.Stream;
  */
 public class Exercise5 {
 
-    private final Exercise3And4 treeOperations = new Exercise3And4();
+    private final Exercise3 buildOperations = new Exercise3();
+    private final Exercise4 traversalOperations = new Exercise4();
 
     /**
      * Extract relevant error messages from an unsorted list of LogMessages.
@@ -62,8 +63,8 @@ public class Exercise5 {
                 .toList();
 
         // Build MessageTree and get sorted messages
-        MessageTree tree = treeOperations.build(highSeverityErrors);
-        List<LogMessage.ValidMessage> sortedMessages = treeOperations.inOrder(tree);
+        MessageTree tree = buildOperations.build(highSeverityErrors);
+        List<LogMessage.ValidMessage> sortedMessages = traversalOperations.inOrder(tree);
 
         // Extract message strings
         return sortedMessages.stream()
@@ -125,8 +126,8 @@ public class Exercise5 {
                 .map(msg -> (LogMessage) msg)
                 .toList();
 
-        MessageTree tree = treeOperations.build(logMessages);
-        return treeOperations.inOrder(tree);
+        MessageTree tree = buildOperations.build(logMessages);
+        return traversalOperations.inOrder(tree);
     }
 
     /**
