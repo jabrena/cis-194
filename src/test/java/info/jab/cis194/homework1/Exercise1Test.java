@@ -155,6 +155,16 @@ class Exercise1Test {
             assertThat(exercise.validate(1111111111111112L)).isFalse();
             assertThat(exercise.validate(5555555555555556L)).isFalse();
         }
+
+        @Test
+        @DisplayName("Should validate using functional approach")
+        void shouldValidateUsingFunctionalApproach() {
+            // Test that the functional validation produces same results
+            assertThat(exercise.validateFunctional(4012888888881881L)).isTrue();
+            assertThat(exercise.validateFunctional(4111111111111111L)).isTrue();
+            assertThat(exercise.validateFunctional(4012888888881882L)).isFalse();
+            assertThat(exercise.validateFunctional(1234567890123456L)).isFalse();
+        }
     }
 
     /**

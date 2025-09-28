@@ -209,6 +209,82 @@ class Exercise2Test {
                 .as("String representation should contain destination peg")
                 .contains("destination");
         }
+
+        @Test
+        @DisplayName("Should support factory method creation")
+        void shouldSupportFactoryMethodCreation() {
+            Exercise2.Move move1 = new Exercise2.Move("a", "b");
+            Exercise2.Move move2 = Exercise2.Move.of("a", "b");
+
+            assertThat(move1).isEqualTo(move2);
+        }
+
+        @Test
+        @DisplayName("Should check peg involvement correctly")
+        void shouldCheckPegInvolvementCorrectly() {
+            Exercise2.Move move = new Exercise2.Move("a", "b");
+
+            assertThat(move.involves("a")).isTrue();
+            assertThat(move.involves("b")).isTrue();
+            assertThat(move.involves("c")).isFalse();
+        }
+
+        @Test
+        @DisplayName("Should get other peg correctly")
+        void shouldGetOtherPegCorrectly() {
+            Exercise2.Move move = new Exercise2.Move("source", "destination");
+
+            assertThat(move.getOtherPeg("source")).isEqualTo("destination");
+            assertThat(move.getOtherPeg("destination")).isEqualTo("source");
+        }
+    }
+
+    @Nested
+    @DisplayName("Functional Programming Features")
+    class FunctionalProgrammingTests {
+
+        @Test
+        @DisplayName("Should calculate minimum moves using bit shifting")
+        void shouldCalculateMinMovesUsingBitShifting() {
+            assertThat(exercise.calculateMinMoves(0)).isEqualTo(0);
+            assertThat(exercise.calculateMinMoves(1)).isEqualTo(1);
+            assertThat(exercise.calculateMinMoves(2)).isEqualTo(3);
+            assertThat(exercise.calculateMinMoves(3)).isEqualTo(7);
+            assertThat(exercise.calculateMinMoves(4)).isEqualTo(15);
+        }
+
+        @Test
+        @DisplayName("Should validate move sequences")
+        void shouldValidateMoveSequences() {
+            List<Exercise2.Move> validSequence = exercise.hanoi(2, "a", "b", "c");
+            assertThat(exercise.isValidSequence(validSequence, 2)).isTrue();
+
+            List<Exercise2.Move> invalidSequence = List.of(
+                new Exercise2.Move("a", "b")
+            );
+            assertThat(exercise.isValidSequence(invalidSequence, 2)).isFalse();
+        }
+
+        @Test
+        @DisplayName("Should extract involved pegs from move sequence")
+        void shouldExtractInvolvedPegsFromMoveSequence() {
+            List<Exercise2.Move> moves = exercise.hanoi(2, "source", "dest", "aux");
+            List<String> involvedPegs = exercise.getInvolvedPegs(moves);
+
+            assertThat(involvedPegs)
+                .hasSize(3)
+                .containsExactly("aux", "dest", "source"); // sorted order
+        }
+
+        @Test
+        @DisplayName("Should use alternative functional implementation")
+        void shouldUseAlternativeFunctionalImplementation() {
+            List<Exercise2.Move> standard = exercise.hanoi(3, "a", "b", "c");
+            List<Exercise2.Move> functional = exercise.hanoiFunctional(3, "a", "b", "c");
+
+            // Both should produce the same number of moves
+            assertThat(functional).hasSize(standard.size());
+        }
     }
 
     @Nested
@@ -234,10 +310,10 @@ class Exercise2Test {
 
             // Verify all moves use the correct peg names
             moves.forEach(move -> {
-                assertThat(move.getFrom())
+                assertThat(move.from())
                     .as("From peg should be one of the provided pegs")
                     .isIn("x", "y", "z");
-                assertThat(move.getTo())
+                assertThat(move.to())
                     .as("To peg should be one of the provided pegs")
                     .isIn("x", "y", "z");
             });
