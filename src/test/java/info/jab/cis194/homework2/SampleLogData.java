@@ -1,31 +1,44 @@
 package info.jab.cis194.homework2;
 
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Utility class for loading and working with the official sample.log data from CIS-194 Homework 2.
  *
  * This class provides convenient access to the sample log data for integration testing,
  * ensuring all tests use the exact same data as specified in the homework.
+ *
+ * Loads sample.log from classpath resources for proper test resource management.
  */
 class SampleLogData {
 
-    private static final String SAMPLE_LOG_PATH = "src/test/resources/sample.log";
+    private static final String SAMPLE_LOG_RESOURCE = "/sample.log";
 
     // Lazy-loaded sample data
     private static String sampleLogContent;
     private static List<LogMessage> parsedSampleMessages;
 
     /**
-     * Get the raw content of sample.log file
+     * Get the raw content of sample.log file from classpath resources
      */
     static String getSampleLogContent() {
         if (sampleLogContent == null) {
-            try {
-                sampleLogContent = Files.readString(Paths.get(SAMPLE_LOG_PATH));
+            try (InputStream inputStream = SampleLogData.class.getResourceAsStream(SAMPLE_LOG_RESOURCE)) {
+                if (inputStream == null) {
+                    throw new RuntimeException("sample.log not found in test resources");
+                }
+
+                try (BufferedReader reader = new BufferedReader(
+                        new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
+                    sampleLogContent = reader.lines()
+                            .collect(Collectors.joining(System.lineSeparator()));
+                }
             } catch (IOException e) {
                 throw new RuntimeException("Failed to load sample.log from test resources", e);
             }
