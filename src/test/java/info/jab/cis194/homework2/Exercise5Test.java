@@ -1,8 +1,5 @@
 package info.jab.cis194.homework2;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
@@ -67,30 +64,17 @@ class Exercise5Test {
         }
 
         @Test
-        @DisplayName("Should return high-severity error messages sorted by timestamp")
+        @DisplayName("Should return high-severity error messages sorted by timestamp using sample.log data")
         void shouldReturnHighSeverityErrorsSorted() {
-            List<LogMessage> messages = List.of(
-                new LogMessage.ValidMessage(MessageType.INFO, 6, "Completed armadillo processing"),
-                new LogMessage.ValidMessage(MessageType.INFO, 1, "Nothing to report"),
-                new LogMessage.ValidMessage(MessageType.error(99), 10, "Flange failed!"),
-                new LogMessage.ValidMessage(MessageType.INFO, 4, "Everything normal"),
-                new LogMessage.ValidMessage(MessageType.INFO, 11, "Initiating self-destruct sequence"),
-                new LogMessage.ValidMessage(MessageType.error(70), 3, "Way too many pickles"),
-                new LogMessage.ValidMessage(MessageType.error(65), 8, "Bad pickle-flange interaction detected"),
-                new LogMessage.ValidMessage(MessageType.WARNING, 5, "Flange is due for a check-up"),
-                new LogMessage.ValidMessage(MessageType.INFO, 7, "Out for lunch, back in two time steps"),
-                new LogMessage.ValidMessage(MessageType.error(20), 2, "Too many pickles"),
-                new LogMessage.ValidMessage(MessageType.INFO, 9, "Back from lunch")
-            );
+            // Given
+            List<LogMessage> sampleMessages = SampleLogData.getParsedSampleMessages();
 
-            List<String> result = exercise.whatWentWrong(messages);
+            // When
+            List<String> result = exercise.whatWentWrong(sampleMessages);
 
-            assertThat(result).hasSize(3);
-            assertThat(result).containsExactly(
-                "Way too many pickles",
-                "Bad pickle-flange interaction detected",
-                "Flange failed!"
-            );
+            // Then
+            assertThat(result).hasSize(SampleLogData.SampleLogStats.HIGH_SEVERITY_ERRORS);
+            assertThat(result).isEqualTo(SampleLogData.getExpectedHighSeverityErrors());
         }
 
         @Test
@@ -241,31 +225,16 @@ class Exercise5Test {
         }
 
         @Test
-        @DisplayName("Should work with sample log file format")
+        @DisplayName("Should work with official sample log file format")
         void shouldWorkWithSampleLogFileFormat() {
-            // This matches the example from the homework PDF
-            List<LogMessage> messages = List.of(
-                new LogMessage.ValidMessage(MessageType.INFO, 6, "Completed armadillo processing"),
-                new LogMessage.ValidMessage(MessageType.INFO, 1, "Nothing to report"),
-                new LogMessage.ValidMessage(MessageType.error(99), 10, "Flange failed!"),
-                new LogMessage.ValidMessage(MessageType.INFO, 4, "Everything normal"),
-                new LogMessage.ValidMessage(MessageType.INFO, 11, "Initiating self-destruct sequence"),
-                new LogMessage.ValidMessage(MessageType.error(70), 3, "Way too many pickles"),
-                new LogMessage.ValidMessage(MessageType.error(65), 8, "Bad pickle-flange interaction detected"),
-                new LogMessage.ValidMessage(MessageType.WARNING, 5, "Flange is due for a check-up"),
-                new LogMessage.ValidMessage(MessageType.INFO, 7, "Out for lunch, back in two time steps"),
-                new LogMessage.ValidMessage(MessageType.error(20), 2, "Too many pickles"),
-                new LogMessage.ValidMessage(MessageType.INFO, 9, "Back from lunch")
-            );
+            // Given - Use the official sample.log data from homework
+            List<LogMessage> sampleMessages = SampleLogData.getParsedSampleMessages();
 
-            List<String> result = exercise.whatWentWrong(messages);
+            // When
+            List<String> result = exercise.whatWentWrong(sampleMessages);
 
-            // Expected result from homework PDF
-            assertThat(result).containsExactly(
-                "Way too many pickles",
-                "Bad pickle-flange interaction detected",
-                "Flange failed!"
-            );
+            // Then - Expected result from homework PDF specification
+            assertThat(result).isEqualTo(SampleLogData.getExpectedHighSeverityErrors());
         }
     }
 
@@ -310,135 +279,96 @@ class Exercise5Test {
 
         @Test
         @DisplayName("Should process sample.log file correctly according to homework specification")
-        void should_processSampleLogFile_when_realHomeworkDataProvided() throws IOException {
+        void should_processSampleLogFile_when_realHomeworkDataProvided() {
             // Given
-            String sampleLogContent = Files.readString(Paths.get("src/test/resources/sample.log"));
+            List<LogMessage> parsedMessages = SampleLogData.getParsedSampleMessages();
 
             // When
-            List<LogMessage> parsedMessages = parseHelper.parse(sampleLogContent);
             List<String> result = exercise.whatWentWrong(parsedMessages);
 
             // Then - Expected result from homework PDF specification
-            assertThat(result).containsExactly(
-                "Way too many pickles",
-                "Bad pickle-flange interaction detected",
-                "Flange failed!"
-            );
+            assertThat(result).isEqualTo(SampleLogData.getExpectedHighSeverityErrors());
         }
 
         @Test
         @DisplayName("Should parse sample.log file and verify message counts")
-        void should_parseAndCountMessages_when_sampleLogFileProvided() throws IOException {
+        void should_parseAndCountMessages_when_sampleLogFileProvided() {
             // Given
-            String sampleLogContent = Files.readString(Paths.get("src/test/resources/sample.log"));
+            List<LogMessage> parsedMessages = SampleLogData.getParsedSampleMessages();
 
             // When
-            List<LogMessage> parsedMessages = parseHelper.parse(sampleLogContent);
             Exercise5.ErrorSummary summary = exercise.getErrorSummary(parsedMessages);
 
             // Then
-            assertThat(summary.totalMessages()).isEqualTo(11); // Total lines in sample.log
-            assertThat(summary.totalErrors()).isEqualTo(4); // 4 error messages (E lines)
-            assertThat(summary.highSeverityErrors()).isEqualTo(3); // 3 errors with severity >= 50
-            assertThat(summary.highSeverityErrorMessages()).hasSize(3);
+            assertThat(summary.totalMessages()).isEqualTo(SampleLogData.SampleLogStats.TOTAL_MESSAGES);
+            assertThat(summary.totalErrors()).isEqualTo(SampleLogData.SampleLogStats.ERROR_MESSAGES);
+            assertThat(summary.highSeverityErrors()).isEqualTo(SampleLogData.SampleLogStats.HIGH_SEVERITY_ERRORS);
+            assertThat(summary.highSeverityErrorMessages()).hasSize(SampleLogData.SampleLogStats.HIGH_SEVERITY_ERRORS);
         }
 
         @Test
         @DisplayName("Should verify sample.log parsing produces correct message types")
-        void should_verifyMessageTypes_when_sampleLogFileParsed() throws IOException {
+        void should_verifyMessageTypes_when_sampleLogFileParsed() {
             // Given
-            String sampleLogContent = Files.readString(Paths.get("src/test/resources/sample.log"));
+            List<LogMessage> parsedMessages = SampleLogData.getParsedSampleMessages();
 
-            // When
-            List<LogMessage> parsedMessages = parseHelper.parse(sampleLogContent);
-
-            // Then
+            // When & Then
             long infoCount = parsedMessages.stream()
                 .filter(msg -> msg instanceof LogMessage.ValidMessage vm &&
                               vm.messageType() == MessageType.INFO)
                 .count();
-            assertThat(infoCount).isEqualTo(6); // 6 Info messages
+            assertThat(infoCount).isEqualTo(SampleLogData.SampleLogStats.INFO_MESSAGES);
 
             long warningCount = parsedMessages.stream()
                 .filter(msg -> msg instanceof LogMessage.ValidMessage vm &&
                               vm.messageType() == MessageType.WARNING)
                 .count();
-            assertThat(warningCount).isEqualTo(1); // 1 Warning message
+            assertThat(warningCount).isEqualTo(SampleLogData.SampleLogStats.WARNING_MESSAGES);
 
             long errorCount = parsedMessages.stream()
                 .filter(msg -> msg instanceof LogMessage.ValidMessage vm &&
                               vm.messageType() instanceof MessageType.Error)
                 .count();
-            assertThat(errorCount).isEqualTo(4); // 4 Error messages
+            assertThat(errorCount).isEqualTo(SampleLogData.SampleLogStats.ERROR_MESSAGES);
 
             // Verify no unknown messages (all should parse correctly)
             long unknownCount = parsedMessages.stream()
                 .filter(msg -> msg instanceof LogMessage.Unknown)
                 .count();
-            assertThat(unknownCount).isEqualTo(0);
+            assertThat(unknownCount).isEqualTo(SampleLogData.SampleLogStats.UNKNOWN_MESSAGES);
         }
 
         @Test
         @DisplayName("Should verify sample.log error severities and timestamps")
-        void should_verifyErrorDetails_when_sampleLogFileParsed() throws IOException {
+        void should_verifyErrorDetails_when_sampleLogFileParsed() {
             // Given
-            String sampleLogContent = Files.readString(Paths.get("src/test/resources/sample.log"));
+            List<LogMessage.ValidMessage> errors = SampleLogData.getErrorSampleMessages();
 
-            // When
-            List<LogMessage> parsedMessages = parseHelper.parse(sampleLogContent);
-            List<LogMessage.ValidMessage> errors = parsedMessages.stream()
-                .filter(msg -> msg instanceof LogMessage.ValidMessage vm &&
-                              vm.messageType() instanceof MessageType.Error)
-                .map(msg -> (LogMessage.ValidMessage) msg)
+            // Then - Verify specific error details from sample.log using predefined data
+            assertThat(errors).hasSize(SampleLogData.SampleLogStats.ERROR_MESSAGES);
+
+            // Verify all expected error messages are present
+            assertThat(errors).contains(
+                SampleLogData.SampleMessages.TOO_MANY_PICKLES_HIGH,
+                SampleLogData.SampleMessages.PICKLE_FLANGE_INTERACTION,
+                SampleLogData.SampleMessages.TOO_MANY_PICKLES_LOW,
+                SampleLogData.SampleMessages.FLANGE_FAILED
+            );
+
+            // Verify high-severity errors (>= 50)
+            List<LogMessage.ValidMessage> highSeverityErrors = errors.stream()
+                .filter(msg -> ((MessageType.Error) msg.messageType()).severity() >= 50)
                 .toList();
-
-            // Then - Verify specific error details from sample.log
-            assertThat(errors).hasSize(4);
-
-            // E 70 3 Way too many pickles
-            LogMessage.ValidMessage error1 = errors.stream()
-                .filter(msg -> msg.timestamp() == 3)
-                .findFirst()
-                .orElseThrow();
-            assertThat(error1.messageType()).isInstanceOf(MessageType.Error.class);
-            assertThat(((MessageType.Error) error1.messageType()).severity()).isEqualTo(70);
-            assertThat(error1.message()).isEqualTo("Way too many pickles");
-
-            // E 65 8 Bad pickle-flange interaction detected
-            LogMessage.ValidMessage error2 = errors.stream()
-                .filter(msg -> msg.timestamp() == 8)
-                .findFirst()
-                .orElseThrow();
-            assertThat(((MessageType.Error) error2.messageType()).severity()).isEqualTo(65);
-            assertThat(error2.message()).isEqualTo("Bad pickle-flange interaction detected");
-
-            // E 20 2 Too many pickles
-            LogMessage.ValidMessage error3 = errors.stream()
-                .filter(msg -> msg.timestamp() == 2)
-                .findFirst()
-                .orElseThrow();
-            assertThat(((MessageType.Error) error3.messageType()).severity()).isEqualTo(20);
-            assertThat(error3.message()).isEqualTo("Too many pickles");
-
-            // E 99 10 Flange failed!
-            LogMessage.ValidMessage error4 = errors.stream()
-                .filter(msg -> msg.timestamp() == 10)
-                .findFirst()
-                .orElseThrow();
-            assertThat(((MessageType.Error) error4.messageType()).severity()).isEqualTo(99);
-            assertThat(error4.message()).isEqualTo("Flange failed!");
+            assertThat(highSeverityErrors).hasSize(SampleLogData.SampleLogStats.HIGH_SEVERITY_ERRORS);
         }
 
         @Test
         @DisplayName("Should demonstrate complete homework pipeline with sample.log")
-        void should_demonstrateCompletePipeline_when_usingSampleLogFile() throws IOException {
-            // Given - Read the actual sample.log file from homework
-            String sampleLogContent = Files.readString(Paths.get("src/test/resources/sample.log"));
+        void should_demonstrateCompletePipeline_when_usingSampleLogFile() {
+            // Given - Use the official sample.log data
+            List<LogMessage> parsedMessages = SampleLogData.getParsedSampleMessages();
 
             // When - Execute the complete pipeline as described in homework
-            // Step 1: Parse the log file
-            List<LogMessage> parsedMessages = parseHelper.parse(sampleLogContent);
-
             // Step 2: Build MessageTree (Exercise 3)
             Exercise3 buildOp = new Exercise3();
             MessageTree tree = buildOp.build(parsedMessages);
@@ -451,18 +381,14 @@ class Exercise5Test {
             List<String> highSeverityErrors = exercise.whatWentWrong(parsedMessages);
 
             // Then - Verify the complete pipeline works as expected
-            assertThat(parsedMessages).hasSize(11); // All lines parsed
-            assertThat(tree.size()).isEqualTo(11); // All valid messages in tree
-            assertThat(sortedMessages).hasSize(11); // All messages in sorted order
+            assertThat(parsedMessages).hasSize(SampleLogData.SampleLogStats.TOTAL_MESSAGES);
+            assertThat(tree.size()).isEqualTo(SampleLogData.SampleLogStats.TOTAL_MESSAGES);
+            assertThat(sortedMessages).hasSize(SampleLogData.SampleLogStats.TOTAL_MESSAGES);
             assertThat(sortedMessages.stream().mapToInt(LogMessage.ValidMessage::timestamp))
                 .isSorted(); // Verify timestamp ordering
 
             // Verify the final result matches homework specification
-            assertThat(highSeverityErrors).containsExactly(
-                "Way too many pickles",      // E 70 3 (timestamp 3, severity 70)
-                "Bad pickle-flange interaction detected", // E 65 8 (timestamp 8, severity 65)
-                "Flange failed!"             // E 99 10 (timestamp 10, severity 99)
-            );
+            assertThat(highSeverityErrors).isEqualTo(SampleLogData.getExpectedHighSeverityErrors());
         }
     }
 }

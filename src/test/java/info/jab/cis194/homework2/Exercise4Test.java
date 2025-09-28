@@ -240,35 +240,29 @@ class Exercise4Test {
     class IntegrationTests {
 
         @Test
-        @DisplayName("Should sort messages using build and inOrder combination")
+        @DisplayName("Should sort messages using build and inOrder combination with sample.log data")
         void shouldSortMessagesUsingBuildAndInOrder() {
-            List<LogMessage> unsortedMessages = List.of(
-                new LogMessage.ValidMessage(MessageType.INFO, 6, "Completed armadillo processing"),
-                new LogMessage.ValidMessage(MessageType.INFO, 1, "Nothing to report"),
-                new LogMessage.ValidMessage(MessageType.error(99), 10, "Flange failed!"),
-                new LogMessage.ValidMessage(MessageType.INFO, 4, "Everything normal"),
-                new LogMessage.ValidMessage(MessageType.WARNING, 5, "Flange is due for a check-up"),
-                new LogMessage.Unknown("This is not in the right format"),
-                new LogMessage.ValidMessage(MessageType.error(70), 3, "Way too many pickles")
-            );
+            // Given
+            List<LogMessage> sampleMessages = SampleLogData.getParsedSampleMessages();
 
-            MessageTree tree = buildHelper.build(unsortedMessages);
+            // When
+            MessageTree tree = buildHelper.build(sampleMessages);
             List<LogMessage.ValidMessage> sortedMessages = exercise.inOrder(tree);
 
-            // Should have 6 valid messages (excluding the Unknown one)
-            assertThat(sortedMessages).hasSize(6);
+            // Then
+            assertThat(sortedMessages).hasSize(SampleLogData.SampleLogStats.TOTAL_MESSAGES);
 
             // Should be sorted by timestamp
             List<Integer> timestamps = sortedMessages.stream()
                 .mapToInt(LogMessage.ValidMessage::timestamp)
                 .boxed()
                 .toList();
-            assertThat(timestamps).isEqualTo(List.of(1, 3, 4, 5, 6, 10));
+            assertThat(timestamps).isEqualTo(List.of(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11));
 
-            // Verify specific messages are in correct order
-            assertThat(sortedMessages.get(0).message()).isEqualTo("Nothing to report");
-            assertThat(sortedMessages.get(1).message()).isEqualTo("Way too many pickles");
-            assertThat(sortedMessages.get(5).message()).isEqualTo("Flange failed!");
+            // Verify specific messages are in correct order using sample data
+            assertThat(sortedMessages.get(0)).isEqualTo(SampleLogData.SampleMessages.NOTHING_TO_REPORT);
+            assertThat(sortedMessages.get(2)).isEqualTo(SampleLogData.SampleMessages.TOO_MANY_PICKLES_HIGH);
+            assertThat(sortedMessages.get(9)).isEqualTo(SampleLogData.SampleMessages.FLANGE_FAILED);
         }
 
         @Test

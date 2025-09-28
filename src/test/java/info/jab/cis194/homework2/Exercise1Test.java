@@ -160,42 +160,36 @@ class Exercise1Test {
     class ParseLogFileTests {
 
         @Test
-        @DisplayName("Should parse multiple log messages correctly")
+        @DisplayName("Should parse multiple log messages correctly using sample.log data")
         void shouldParseMultipleMessages() {
-            String logContent = """
-                I 6 Completed armadillo processing
-                I 1 Nothing to report
-                E 99 10 Flange failed!
-                I 4 Everything normal
-                W 5 Flange is due for a check-up
-                This is not in the right format
-                E 70 3 Way too many pickles
-                """;
+            // Given
+            String sampleLogContent = SampleLogData.getSampleLogContent();
 
-            List<LogMessage> result = exercise.parse(logContent);
+            // When
+            List<LogMessage> result = exercise.parse(sampleLogContent);
 
-            assertThat(result).hasSize(7);
+            // Then
+            assertThat(result).hasSize(SampleLogData.SampleLogStats.TOTAL_MESSAGES);
 
-            // Check first message (Info)
+            // Check first message (Info) - "I 6 Completed armadillo processing"
             assertThat(result.get(0)).isInstanceOf(LogMessage.ValidMessage.class);
             LogMessage.ValidMessage msg1 = (LogMessage.ValidMessage) result.get(0);
-            assertThat(msg1.messageType()).isEqualTo(MessageType.INFO);
-            assertThat(msg1.timestamp()).isEqualTo(6);
-            assertThat(msg1.message()).isEqualTo("Completed armadillo processing");
+            assertThat(msg1).isEqualTo(SampleLogData.SampleMessages.ARMADILLO_PROCESSING);
 
-            // Check error message
-            assertThat(result.get(2)).isInstanceOf(LogMessage.ValidMessage.class);
-            LogMessage.ValidMessage msg3 = (LogMessage.ValidMessage) result.get(2);
-            assertThat(msg3.messageType()).isInstanceOf(MessageType.Error.class);
-            MessageType.Error errorType = (MessageType.Error) msg3.messageType();
-            assertThat(errorType.severity()).isEqualTo(99);
-            assertThat(msg3.timestamp()).isEqualTo(10);
-            assertThat(msg3.message()).isEqualTo("Flange failed!");
+            // Check high-severity error message - "E 99 10 Flange failed!"
+            LogMessage.ValidMessage flangeFailedMsg = result.stream()
+                .filter(msg -> msg instanceof LogMessage.ValidMessage vm &&
+                              vm.message().equals("Flange failed!"))
+                .map(msg -> (LogMessage.ValidMessage) msg)
+                .findFirst()
+                .orElseThrow();
+            assertThat(flangeFailedMsg).isEqualTo(SampleLogData.SampleMessages.FLANGE_FAILED);
 
-            // Check unknown message
-            assertThat(result.get(5)).isInstanceOf(LogMessage.Unknown.class);
-            LogMessage.Unknown unknownMsg = (LogMessage.Unknown) result.get(5);
-            assertThat(unknownMsg.originalMessage()).isEqualTo("This is not in the right format");
+            // Verify all messages are valid (no unknown messages in sample.log)
+            long unknownCount = result.stream()
+                .filter(msg -> msg instanceof LogMessage.Unknown)
+                .count();
+            assertThat(unknownCount).isEqualTo(SampleLogData.SampleLogStats.UNKNOWN_MESSAGES);
         }
 
         @Test
@@ -213,47 +207,38 @@ class Exercise1Test {
         }
 
         @Test
-        @DisplayName("Should parse sample log file format")
+        @DisplayName("Should parse sample log file format using official sample.log")
         void shouldParseSampleLogFormat() {
-            String sampleLog = """
-                I 6 Completed armadillo processing
-                I 1 Nothing to report
-                I 4 Everything normal
-                I 11 Initiating self-destruct sequence
-                E 70 3 Way too many pickles
-                E 65 8 Bad pickle-flange interaction detected
-                W 5 Flange is due for a check-up
-                I 7 Out for lunch, back in two time steps
-                E 20 2 Too many pickles
-                I 9 Back from lunch
-                E 99 10 Flange failed!
-                """;
+            // Given
+            String sampleLogContent = SampleLogData.getSampleLogContent();
 
-            List<LogMessage> result = exercise.parse(sampleLog);
+            // When
+            List<LogMessage> result = exercise.parse(sampleLogContent);
 
-            assertThat(result).hasSize(11);
+            // Then
+            assertThat(result).hasSize(SampleLogData.SampleLogStats.TOTAL_MESSAGES);
 
-            // Count message types
+            // Count message types using sample data statistics
             long infoCount = result.stream()
                 .filter(msg -> msg instanceof LogMessage.ValidMessage)
                 .map(msg -> (LogMessage.ValidMessage) msg)
                 .filter(msg -> msg.messageType() == MessageType.INFO)
                 .count();
-            assertThat(infoCount).isEqualTo(6);
+            assertThat(infoCount).isEqualTo(SampleLogData.SampleLogStats.INFO_MESSAGES);
 
             long warningCount = result.stream()
                 .filter(msg -> msg instanceof LogMessage.ValidMessage)
                 .map(msg -> (LogMessage.ValidMessage) msg)
                 .filter(msg -> msg.messageType() == MessageType.WARNING)
                 .count();
-            assertThat(warningCount).isEqualTo(1);
+            assertThat(warningCount).isEqualTo(SampleLogData.SampleLogStats.WARNING_MESSAGES);
 
             long errorCount = result.stream()
                 .filter(msg -> msg instanceof LogMessage.ValidMessage)
                 .map(msg -> (LogMessage.ValidMessage) msg)
                 .filter(msg -> msg.messageType() instanceof MessageType.Error)
                 .count();
-            assertThat(errorCount).isEqualTo(4);
+            assertThat(errorCount).isEqualTo(SampleLogData.SampleLogStats.ERROR_MESSAGES);
         }
     }
 }
