@@ -5,6 +5,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import static info.jab.cis194.homework3.Exercise2.localMaxima;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -23,7 +24,7 @@ class Exercise2Test {
             List<Integer> expectedResult = List.of();
 
             // When
-            List<Integer> actualResult = Exercise2.localMaxima(input);
+            List<Integer> actualResult = localMaxima(input);
 
             // Then
             assertThat(actualResult).isEqualTo(expectedResult);
@@ -37,7 +38,7 @@ class Exercise2Test {
             List<Integer> expectedResult = List.of();
 
             // When
-            List<Integer> actualResult = Exercise2.localMaxima(input);
+            List<Integer> actualResult = localMaxima(input);
 
             // Then
             assertThat(actualResult).isEqualTo(expectedResult);
@@ -51,7 +52,7 @@ class Exercise2Test {
             List<Integer> expectedResult = List.of();
 
             // When
-            List<Integer> actualResult = Exercise2.localMaxima(input);
+            List<Integer> actualResult = localMaxima(input);
 
             // Then
             assertThat(actualResult).isEqualTo(expectedResult);
@@ -65,7 +66,7 @@ class Exercise2Test {
             List<Integer> expectedResult = List.of(5);
 
             // When
-            List<Integer> actualResult = Exercise2.localMaxima(input);
+            List<Integer> actualResult = localMaxima(input);
 
             // Then
             assertThat(actualResult).isEqualTo(expectedResult);
@@ -79,7 +80,7 @@ class Exercise2Test {
             List<Integer> expectedResult = List.of(9, 6);
 
             // When
-            List<Integer> actualResult = Exercise2.localMaxima(input);
+            List<Integer> actualResult = localMaxima(input);
 
             // Then
             assertThat(actualResult).isEqualTo(expectedResult);
@@ -93,7 +94,7 @@ class Exercise2Test {
             List<Integer> expectedResult = List.of(4);
 
             // When
-            List<Integer> actualResult = Exercise2.localMaxima(input);
+            List<Integer> actualResult = localMaxima(input);
 
             // Then
             assertThat(actualResult).isEqualTo(expectedResult);
@@ -107,7 +108,7 @@ class Exercise2Test {
             List<Integer> expectedResult = List.of();
 
             // When
-            List<Integer> actualResult = Exercise2.localMaxima(input);
+            List<Integer> actualResult = localMaxima(input);
 
             // Then
             assertThat(actualResult).isEmpty();
@@ -121,7 +122,7 @@ class Exercise2Test {
             List<Integer> expectedResult = List.of();
 
             // When
-            List<Integer> actualResult = Exercise2.localMaxima(input);
+            List<Integer> actualResult = localMaxima(input);
 
             // Then
             assertThat(actualResult).isEmpty();
@@ -139,7 +140,7 @@ class Exercise2Test {
             List<Integer> input = null;
 
             // When & Then
-            assertThatThrownBy(() -> Exercise2.localMaxima(input))
+            assertThatThrownBy(() -> localMaxima(input))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Input list cannot be null");
         }
@@ -152,7 +153,7 @@ class Exercise2Test {
             List<Integer> expectedResult = List.of();
 
             // When
-            List<Integer> actualResult = Exercise2.localMaxima(input);
+            List<Integer> actualResult = localMaxima(input);
 
             // Then
             assertThat(actualResult).isEqualTo(expectedResult);
@@ -166,7 +167,7 @@ class Exercise2Test {
             List<Integer> expectedResult = List.of();
 
             // When
-            List<Integer> actualResult = Exercise2.localMaxima(input);
+            List<Integer> actualResult = localMaxima(input);
 
             // Then
             assertThat(actualResult).isEmpty();
@@ -180,7 +181,7 @@ class Exercise2Test {
             List<Integer> expectedResult = List.of(-2);
 
             // When
-            List<Integer> actualResult = Exercise2.localMaxima(input);
+            List<Integer> actualResult = localMaxima(input);
 
             // Then
             assertThat(actualResult).containsExactly(-2);
@@ -198,7 +199,7 @@ class Exercise2Test {
             List<Integer> input = List.of(1, 7, 2, 8, 3);
 
             // When
-            List<Integer> actualResult = Exercise2.localMaxima(input);
+            List<Integer> actualResult = localMaxima(input);
 
             // Then
             assertThat(actualResult)
@@ -213,7 +214,7 @@ class Exercise2Test {
             List<Integer> input = List.of(1, 9, 2, 6, 4, 8, 1);
 
             // When
-            List<Integer> actualResult = Exercise2.localMaxima(input);
+            List<Integer> actualResult = localMaxima(input);
 
             // Then
             assertThat(actualResult).containsExactly(9, 6, 8); // Should be in the same order as they appear in the input
@@ -226,7 +227,7 @@ class Exercise2Test {
             List<Integer> input = List.of(10, 20, 15, 25, 5, 30, 10, 40, 35);
 
             // When
-            List<Integer> actualResult = Exercise2.localMaxima(input);
+            List<Integer> actualResult = localMaxima(input);
 
             // Then
             assertThat(actualResult).containsExactly(20, 25, 30, 40);

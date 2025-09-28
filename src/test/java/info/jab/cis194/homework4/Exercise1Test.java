@@ -5,6 +5,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import static info.jab.cis194.homework4.Exercise1.fun1;
+import static info.jab.cis194.homework4.Exercise1.fun2;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -23,7 +25,7 @@ class Exercise1Test {
             List<Integer> expected = List.of();
 
             // When
-            List<Integer> result = Exercise1.fun1(input);
+            List<Integer> result = fun1(input);
 
             // Then
             assertThat(result).isEqualTo(expected);
@@ -37,7 +39,7 @@ class Exercise1Test {
             List<Integer> expected = List.of(3);
 
             // When
-            List<Integer> result = Exercise1.fun1(input);
+            List<Integer> result = fun1(input);
 
             // Then
             assertThat(result).isEqualTo(expected);
@@ -51,7 +53,7 @@ class Exercise1Test {
             List<Integer> expected = List.of(10);
 
             // When
-            List<Integer> result = Exercise1.fun1(input);
+            List<Integer> result = fun1(input);
 
             // Then
             assertThat(result).isEqualTo(expected);
@@ -65,7 +67,7 @@ class Exercise1Test {
             List<Integer> expected = List.of(4, 1, 10, 3, 16, 5);
 
             // When
-            List<Integer> result = Exercise1.fun1(input);
+            List<Integer> result = fun1(input);
 
             // Then
             assertThat(result).isEqualTo(expected);
@@ -79,7 +81,7 @@ class Exercise1Test {
             List<Integer> expected = List.of(-3, -8, -5);
 
             // When
-            List<Integer> result = Exercise1.fun1(input);
+            List<Integer> result = fun1(input);
 
             // Then
             assertThat(result).isEqualTo(expected);
@@ -93,7 +95,7 @@ class Exercise1Test {
             List<Integer> expected = List.of(-1);
 
             // When
-            List<Integer> result = Exercise1.fun1(input);
+            List<Integer> result = fun1(input);
 
             // Then
             assertThat(result).isEqualTo(expected);
@@ -106,7 +108,7 @@ class Exercise1Test {
             List<Integer> input = null;
 
             // When & Then
-            assertThatThrownBy(() -> Exercise1.fun1(input))
+            assertThatThrownBy(() -> fun1(input))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Input list cannot be null");
         }
@@ -124,7 +126,7 @@ class Exercise1Test {
             List<Integer> expected = List.of();
 
             // When
-            List<Integer> result = Exercise1.fun2(input);
+            List<Integer> result = fun2(input);
 
             // Then
             assertThat(result).isEqualTo(expected);
@@ -138,7 +140,7 @@ class Exercise1Test {
             List<Integer> expected = List.of(3);
 
             // When
-            List<Integer> result = Exercise1.fun2(input);
+            List<Integer> result = fun2(input);
 
             // Then
             assertThat(result).isEqualTo(expected);
@@ -152,7 +154,7 @@ class Exercise1Test {
             List<Integer> expected = List.of(10);
 
             // When
-            List<Integer> result = Exercise1.fun2(input);
+            List<Integer> result = fun2(input);
 
             // Then
             assertThat(result).isEqualTo(expected);
@@ -166,7 +168,7 @@ class Exercise1Test {
             List<Integer> expected = List.of(4, 1, 10, 3, 16, 5);
 
             // When
-            List<Integer> result = Exercise1.fun2(input);
+            List<Integer> result = fun2(input);
 
             // Then
             assertThat(result).isEqualTo(expected);
@@ -180,7 +182,7 @@ class Exercise1Test {
             List<Integer> expected = List.of(-3, -8, -5);
 
             // When
-            List<Integer> result = Exercise1.fun2(input);
+            List<Integer> result = fun2(input);
 
             // Then
             assertThat(result).isEqualTo(expected);
@@ -194,7 +196,7 @@ class Exercise1Test {
             List<Integer> expected = List.of(-1);
 
             // When
-            List<Integer> result = Exercise1.fun2(input);
+            List<Integer> result = fun2(input);
 
             // Then
             assertThat(result).isEqualTo(expected);
@@ -207,7 +209,7 @@ class Exercise1Test {
             List<Integer> input = null;
 
             // When & Then
-            assertThatThrownBy(() -> Exercise1.fun2(input))
+            assertThatThrownBy(() -> fun2(input))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Input list cannot be null");
         }
@@ -224,8 +226,8 @@ class Exercise1Test {
             List<Integer> input = List.of(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
 
             // When
-            List<Integer> result1 = Exercise1.fun1(input);
-            List<Integer> result2 = Exercise1.fun2(input);
+            List<Integer> result1 = fun1(input);
+            List<Integer> result2 = fun2(input);
 
             // Then
             assertThat(result1).isEqualTo(result2);
@@ -247,8 +249,8 @@ class Exercise1Test {
 
             // When & Then
             for (List<Integer> testCase : testCases) {
-                List<Integer> result1 = Exercise1.fun1(testCase);
-                List<Integer> result2 = Exercise1.fun2(testCase);
+                List<Integer> result1 = fun1(testCase);
+                List<Integer> result2 = fun2(testCase);
                 assertThat(result1).isEqualTo(result2);
             }
         }

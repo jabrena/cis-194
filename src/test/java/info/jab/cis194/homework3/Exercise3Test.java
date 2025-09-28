@@ -5,6 +5,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import static info.jab.cis194.homework3.Exercise3.histogram;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -23,7 +24,7 @@ class Exercise3Test {
             String expectedResult = "==========\n0123456789\n";
 
             // When
-            String actualResult = Exercise3.histogram(input);
+            String actualResult = histogram(input);
 
             // Then
             assertThat(actualResult).isEqualTo(expectedResult);
@@ -37,7 +38,7 @@ class Exercise3Test {
             String expectedResult = "   *\n==========\n0123456789\n";
 
             // When
-            String actualResult = Exercise3.histogram(input);
+            String actualResult = histogram(input);
 
             // Then
             assertThat(actualResult).isEqualTo(expectedResult);
@@ -51,7 +52,7 @@ class Exercise3Test {
             String expectedResult = "     *\n     *\n     *\n==========\n0123456789\n";
 
             // When
-            String actualResult = Exercise3.histogram(input);
+            String actualResult = histogram(input);
 
             // Then
             assertThat(actualResult).isEqualTo(expectedResult);
@@ -65,7 +66,7 @@ class Exercise3Test {
             String expectedResult = " ***\n==========\n0123456789\n";
 
             // When
-            String actualResult = Exercise3.histogram(input);
+            String actualResult = histogram(input);
 
             // Then
             assertThat(actualResult).isEqualTo(expectedResult);
@@ -79,7 +80,7 @@ class Exercise3Test {
             String expectedResult = " *\n *\n *   *\n==========\n0123456789\n";
 
             // When
-            String actualResult = Exercise3.histogram(input);
+            String actualResult = histogram(input);
 
             // Then
             assertThat(actualResult).isEqualTo(expectedResult);
@@ -93,7 +94,7 @@ class Exercise3Test {
             String expectedResult = "**********\n==========\n0123456789\n";
 
             // When
-            String actualResult = Exercise3.histogram(input);
+            String actualResult = histogram(input);
 
             // Then
             assertThat(actualResult).isEqualTo(expectedResult);
@@ -111,7 +112,7 @@ class Exercise3Test {
             List<Integer> input = null;
 
             // When & Then
-            assertThatThrownBy(() -> Exercise3.histogram(input))
+            assertThatThrownBy(() -> histogram(input))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Input list cannot be null");
         }
@@ -124,7 +125,7 @@ class Exercise3Test {
             String expectedResult = "     *\n==========\n0123456789\n";
 
             // When
-            String actualResult = Exercise3.histogram(input);
+            String actualResult = histogram(input);
 
             // Then
             assertThat(actualResult).isEqualTo(expectedResult);
@@ -138,7 +139,7 @@ class Exercise3Test {
             String expectedResult = "  *\n  *    *\n==========\n0123456789\n";
 
             // When
-            String actualResult = Exercise3.histogram(input);
+            String actualResult = histogram(input);
 
             // Then
             assertThat(actualResult).isEqualTo(expectedResult);
@@ -157,7 +158,7 @@ class Exercise3Test {
             String expectedResult = "     *\n   * *\n   * *\n==========\n0123456789\n";
 
             // When
-            String actualResult = Exercise3.histogram(input);
+            String actualResult = histogram(input);
 
             // Then
             assertThat(actualResult).isEqualTo(expectedResult);
@@ -171,7 +172,7 @@ class Exercise3Test {
             String expectedResult = "*\n*\n*\n*\n*\n==========\n0123456789\n";
 
             // When
-            String actualResult = Exercise3.histogram(input);
+            String actualResult = histogram(input);
 
             // Then
             assertThat(actualResult).isEqualTo(expectedResult);
@@ -185,7 +186,7 @@ class Exercise3Test {
             String expectedResult = "* * * * *\n==========\n0123456789\n";
 
             // When
-            String actualResult = Exercise3.histogram(input);
+            String actualResult = histogram(input);
 
             // Then
             assertThat(actualResult).isEqualTo(expectedResult);
@@ -199,7 +200,7 @@ class Exercise3Test {
             String expectedResult = "    *\n    *\n    * *\n ******  *\n==========\n0123456789\n";
 
             // When
-            String actualResult = Exercise3.histogram(input);
+            String actualResult = histogram(input);
 
             // Then
             assertThat(actualResult).isEqualTo(expectedResult);
@@ -217,7 +218,7 @@ class Exercise3Test {
             List<Integer> input = List.of(1, 2, 3);
 
             // When
-            String actualResult = Exercise3.histogram(input);
+            String actualResult = histogram(input);
 
             // Then
             assertThat(actualResult).endsWith("==========\n0123456789\n");
@@ -230,7 +231,7 @@ class Exercise3Test {
             List<Integer> input = List.of(1, 5, 9);
 
             // When
-            String actualResult = Exercise3.histogram(input);
+            String actualResult = histogram(input);
             String[] lines = actualResult.split("\n");
 
             // Then
@@ -249,7 +250,7 @@ class Exercise3Test {
             List<Integer> input = List.of(1, 9);
 
             // When
-            String actualResult = Exercise3.histogram(input);
+            String actualResult = histogram(input);
 
             // Then
             assertThat(actualResult).contains(" *       *");

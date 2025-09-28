@@ -5,6 +5,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import static info.jab.cis194.homework3.Exercise1.skips;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -23,7 +24,7 @@ class Exercise1Test {
             List<List<Integer>> expectedResult = List.of();
 
             // When
-            List<List<Integer>> actualResult = Exercise1.skips(input);
+            List<List<Integer>> actualResult = skips(input);
 
             // Then
             assertThat(actualResult).isEqualTo(expectedResult);
@@ -37,7 +38,7 @@ class Exercise1Test {
             List<List<String>> expectedResult = List.of(List.of("a"));
 
             // When
-            List<List<String>> actualResult = Exercise1.skips(input);
+            List<List<String>> actualResult = skips(input);
 
             // Then
             assertThat(actualResult).isEqualTo(expectedResult);
@@ -54,7 +55,7 @@ class Exercise1Test {
             );
 
             // When
-            List<List<String>> actualResult = Exercise1.skips(input);
+            List<List<String>> actualResult = skips(input);
 
             // Then
             assertThat(actualResult).isEqualTo(expectedResult);
@@ -73,7 +74,7 @@ class Exercise1Test {
             );
 
             // When
-            List<List<String>> actualResult = Exercise1.skips(input);
+            List<List<String>> actualResult = skips(input);
 
             // Then
             assertThat(actualResult).isEqualTo(expectedResult);
@@ -94,7 +95,7 @@ class Exercise1Test {
             );
 
             // When
-            List<List<Integer>> actualResult = Exercise1.skips(input);
+            List<List<Integer>> actualResult = skips(input);
 
             // Then
             assertThat(actualResult).isEqualTo(expectedResult);
@@ -112,7 +113,7 @@ class Exercise1Test {
             List<Integer> input = null;
 
             // When & Then
-            assertThatThrownBy(() -> Exercise1.skips(input))
+            assertThatThrownBy(() -> skips(input))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Input list cannot be null");
         }
@@ -125,7 +126,7 @@ class Exercise1Test {
             int expectedSize = input.size();
 
             // When
-            List<List<String>> actualResult = Exercise1.skips(input);
+            List<List<String>> actualResult = skips(input);
 
             // Then
             assertThat(actualResult).hasSize(expectedSize);
@@ -140,7 +141,7 @@ class Exercise1Test {
                 .toList();
 
             // When
-            List<List<Integer>> actualResult = Exercise1.skips(input);
+            List<List<Integer>> actualResult = skips(input);
 
             // Then
             assertThat(actualResult).hasSize(100);
@@ -160,7 +161,7 @@ class Exercise1Test {
             List<Integer> input = List.of(10, 20, 30, 40, 50);
 
             // When
-            List<List<Integer>> actualResult = Exercise1.skips(input);
+            List<List<Integer>> actualResult = skips(input);
 
             // Then
             assertThat(actualResult.get(0).get(0)).isEqualTo(10); // First sublist starts at index 0
@@ -177,7 +178,7 @@ class Exercise1Test {
             List<Integer> input = List.of(1, 2, 3, 4, 5, 6, 7, 8);
 
             // When
-            List<List<Integer>> actualResult = Exercise1.skips(input);
+            List<List<Integer>> actualResult = skips(input);
 
             // Then
             assertThat(actualResult.get(0)).isEqualTo(List.of(1, 2, 3, 4, 5, 6, 7, 8)); // First sublist (skip 0): all elements
