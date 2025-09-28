@@ -1,7 +1,6 @@
 package info.jab.cis194.homework3;
 
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
@@ -60,7 +59,7 @@ public class Exercise3 {
         String histogramLines = IntStream.rangeClosed(1, (int) maxCount)
             .map(row -> (int) maxCount - row + 1) // Reverse to go from top to bottom
             .mapToObj(row -> buildHistogramLine(counts, row))
-            .collect(Collectors.joining("\n"));
+            .reduce("", (acc, line) -> acc.isEmpty() ? line : acc + "\n" + line);
 
         return histogramLines.isEmpty()
             ? "==========\n0123456789\n"
@@ -68,7 +67,7 @@ public class Exercise3 {
     }
 
     /**
-     * Builds a single line of the histogram for the given row.
+     * Builds a single line of the histogram for the given row using functional approach.
      *
      * @param counts the counts for each digit 0-9
      * @param row the row number (1-indexed from bottom)
@@ -77,7 +76,7 @@ public class Exercise3 {
     private static String buildHistogramLine(List<Long> counts, int row) {
         return counts.stream()
             .map(count -> count >= row ? "*" : " ")
-            .collect(Collectors.joining())
+            .reduce("", String::concat)
             .replaceAll("\\s+$", ""); // Trim trailing spaces
     }
 }

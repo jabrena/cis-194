@@ -3,14 +3,11 @@ package info.jab.cis194.homework8;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 /**
  * Exercise 1: IO and File Processing
@@ -65,41 +62,48 @@ public class Exercise1 {
     }
 
     /**
-     * Employee statistics class for aggregating employee data
+     * Employee statistics record for aggregating employee data
+     * Immutable data class following functional programming principles
      */
-    public static class EmployeeStats {
-        private final int totalCount;
-        private final int minId;
-        private final int maxId;
-        private final double averageId;
-        private final List<String> employeeNames;
-
-        public EmployeeStats(int totalCount, int minId, int maxId, double averageId, List<String> employeeNames) {
-            this.totalCount = totalCount;
-            this.minId = minId;
-            this.maxId = maxId;
-            this.averageId = averageId;
-            this.employeeNames = new ArrayList<>(employeeNames);
+    public record EmployeeStats(
+            int totalCount,
+            int minId,
+            int maxId,
+            double averageId,
+            List<String> employeeNames
+    ) {
+        public EmployeeStats {
+            // Defensive copy to ensure immutability
+            employeeNames = List.copyOf(employeeNames);
         }
 
-        public int getTotalCount() {
-            return totalCount;
+        /**
+         * Creates empty statistics for when no employees are found
+         */
+        public static EmployeeStats empty() {
+            return new EmployeeStats(0, 0, 0, 0.0, List.of());
         }
 
-        public int getMinId() {
-            return minId;
-        }
+        /**
+         * Creates statistics from a list of employees using functional approach
+         */
+        public static EmployeeStats fromEmployees(List<Employee> employees) {
+            if (employees.isEmpty()) {
+                return empty();
+            }
 
-        public int getMaxId() {
-            return maxId;
-        }
+            var names = employees.stream().map(Employee::getName).toList();
+            var minId = employees.stream().mapToInt(Employee::getId).min().orElse(0);
+            var maxId = employees.stream().mapToInt(Employee::getId).max().orElse(0);
+            var averageId = employees.stream().mapToInt(Employee::getId).average().orElse(0.0);
 
-        public double getAverageId() {
-            return averageId;
-        }
-
-        public List<String> getEmployeeNames() {
-            return new ArrayList<>(employeeNames);
+            return new EmployeeStats(
+                    employees.size(),
+                    minId,
+                    maxId,
+                    averageId,
+                    names
+            );
         }
     }
 
@@ -140,9 +144,8 @@ public class Exercise1 {
 
         return lines.stream()
                 .map(Exercise1::parseEmployee)
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .collect(Collectors.toList());
+                .flatMap(Optional::stream)
+                .toList();
     }
 
     /**
@@ -156,7 +159,7 @@ public class Exercise1 {
     public static List<Employee> filterEmployeesByIdRange(List<Employee> employees, int minId, int maxId) {
         return employees.stream()
                 .filter(emp -> emp.getId() >= minId && emp.getId() <= maxId)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     /**
@@ -170,7 +173,7 @@ public class Exercise1 {
         return employees.stream()
                 .map(Employee::getName)
                 .map(mapper)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     /**
@@ -202,45 +205,40 @@ public class Exercise1 {
 
     /**
      * Reads employees from a file with fallback to another file if the first fails
+     * Uses functional approach with supplier chain for error recovery
      *
      * @param primaryFile the primary file to try reading
      * @param fallbackFile the fallback file if primary fails
      * @return list of employees from successful file read
      */
     public static List<Employee> readEmployeesWithFallback(String primaryFile, String fallbackFile) {
+        return tryReadFile(primaryFile)
+                .or(() -> tryReadFile(fallbackFile))
+                .orElse(List.of());
+    }
+
+    /**
+     * Attempts to read employees from a file, returning Optional for functional composition
+     *
+     * @param filename the file to read
+     * @return Optional containing employees list, or empty if reading fails
+     */
+    private static Optional<List<Employee>> tryReadFile(String filename) {
         try {
-            return readEmployeesFromFile(primaryFile);
+            return Optional.of(readEmployeesFromFile(filename));
         } catch (IOException e) {
-            try {
-                return readEmployeesFromFile(fallbackFile);
-            } catch (IOException fallbackException) {
-                return Collections.emptyList();
-            }
+            return Optional.empty();
         }
     }
 
     /**
-     * Calculates comprehensive statistics for employees from a file
+     * Calculates comprehensive statistics for employees from a file using functional approach
      *
      * @param filename the file to read employees from
      * @return EmployeeStats containing various statistics
      * @throws IOException if file cannot be read
      */
     public static EmployeeStats calculateEmployeeStats(String filename) throws IOException {
-        List<Employee> employees = readEmployeesFromFile(filename);
-
-        if (employees.isEmpty()) {
-            return new EmployeeStats(0, 0, 0, 0.0, Collections.emptyList());
-        }
-
-        int totalCount = employees.size();
-        int minId = employees.stream().mapToInt(Employee::getId).min().orElse(0);
-        int maxId = employees.stream().mapToInt(Employee::getId).max().orElse(0);
-        double averageId = employees.stream().mapToInt(Employee::getId).average().orElse(0.0);
-        List<String> employeeNames = employees.stream()
-                .map(Employee::getName)
-                .collect(Collectors.toList());
-
-        return new EmployeeStats(totalCount, minId, maxId, averageId, employeeNames);
+        return EmployeeStats.fromEmployees(readEmployeesFromFile(filename));
     }
 }

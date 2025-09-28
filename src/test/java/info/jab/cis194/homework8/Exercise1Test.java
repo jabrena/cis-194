@@ -12,7 +12,9 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.within;
 
 /**
  * Tests for Exercise 1: IO and File Processing
@@ -352,11 +354,11 @@ class Exercise1Test {
             Exercise1.EmployeeStats stats = Exercise1.calculateEmployeeStats(testFile.toString());
 
             // Then
-            assertThat(stats.getTotalCount()).isEqualTo(5);
-            assertThat(stats.getMinId()).isEqualTo(1);
-            assertThat(stats.getMaxId()).isEqualTo(5);
-            assertThat(stats.getAverageId()).isEqualTo(3.0, within(0.01));
-            assertThat(stats.getEmployeeNames())
+            assertThat(stats.totalCount()).isEqualTo(5);
+            assertThat(stats.minId()).isEqualTo(1);
+            assertThat(stats.maxId()).isEqualTo(5);
+            assertThat(stats.averageId()).isEqualTo(3.0, within(0.01));
+            assertThat(stats.employeeNames())
                     .contains("John Doe")
                     .contains("Charlie Davis");
         }
@@ -371,11 +373,11 @@ class Exercise1Test {
             Exercise1.EmployeeStats stats = Exercise1.calculateEmployeeStats(emptyFile.toString());
 
             // Then
-            assertThat(stats.getTotalCount()).isEqualTo(0);
-            assertThat(stats.getMinId()).isEqualTo(0);
-            assertThat(stats.getMaxId()).isEqualTo(0);
-            assertThat(stats.getAverageId()).isEqualTo(0.0);
-            assertThat(stats.getEmployeeNames()).isEmpty();
+            assertThat(stats.totalCount()).isEqualTo(0);
+            assertThat(stats.minId()).isEqualTo(0);
+            assertThat(stats.maxId()).isEqualTo(0);
+            assertThat(stats.averageId()).isEqualTo(0.0);
+            assertThat(stats.employeeNames()).isEmpty();
         }
     }
 }

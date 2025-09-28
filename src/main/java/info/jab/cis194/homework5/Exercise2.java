@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -438,7 +437,7 @@ public class Exercise2 {
 
         String elements = list.stream()
             .map(Exercise2::show)
-            .collect(Collectors.joining(", "));
+            .reduce("", (acc, element) -> acc.isEmpty() ? element : acc + ", " + element);
 
         return "[" + elements + "]";
     }
