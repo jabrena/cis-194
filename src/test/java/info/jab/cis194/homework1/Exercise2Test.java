@@ -40,8 +40,16 @@ class Exercise2Test {
         @Test
         @DisplayName("Should handle base case: moving 1 disc")
         void shouldHandleBaseCaseMovingOneDisc() {
-            List<Exercise2.Move> moves = exercise.hanoi(1, "a", "b", "c");
+            // Given
+            int numberOfDiscs = 1;
+            String sourcePeg = "a";
+            String destinationPeg = "b";
+            String auxiliaryPeg = "c";
 
+            // When
+            List<Exercise2.Move> moves = exercise.hanoi(numberOfDiscs, sourcePeg, destinationPeg, auxiliaryPeg);
+
+            // Then
             assertThat(moves).hasSize(1);
             assertThat(moves.get(0)).isEqualTo(new Exercise2.Move("a", "b"));
         }
