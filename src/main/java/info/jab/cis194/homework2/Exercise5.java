@@ -1,6 +1,7 @@
 package info.jab.cis194.homework2;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 /**
@@ -26,7 +27,7 @@ public class Exercise5 {
      * "Relevant" means errors with a severity of at least 50.
      * The function:
      * 1. Filters for error messages with severity >= 50
-     * 2. Sorts them by timestamp using MessageTree operations
+     * 2. Sorts them by timestamp using functional composition
      * 3. Returns the error message strings
      *
      * @param messages unsorted list of LogMessages
@@ -41,11 +42,7 @@ public class Exercise5 {
         return messages.stream()
                 .filter(this::isHighSeverityError)
                 .map(msg -> (LogMessage.ValidMessage) msg) // Safe cast after filtering
-                .collect(java.util.stream.Collectors.collectingAndThen(
-                    java.util.stream.Collectors.toList(),
-                    this::sortMessagesByTimestamp
-                ))
-                .stream()
+                .sorted((msg1, msg2) -> Integer.compare(msg1.timestamp(), msg2.timestamp()))
                 .map(LogMessage.ValidMessage::message)
                 .toList();
     }
@@ -75,21 +72,17 @@ public class Exercise5 {
     }
 
     /**
-     * Functional composition approach
+     * Functional composition approach using pure functional pipeline
      */
     public List<String> whatWentWrongComposed(List<LogMessage> messages) {
-        if (messages == null) {
-            throw new IllegalArgumentException("Messages list cannot be null");
-        }
-
-        return Stream.of(messages)
-                .flatMap(List::stream)
+        return Optional.ofNullable(messages)
+                .map(List::stream)
+                .orElse(Stream.empty())
                 .filter(this::isHighSeverityError)
                 .map(msg -> (LogMessage.ValidMessage) msg)
-                .collect(java.util.stream.Collectors.collectingAndThen(
-                    java.util.stream.Collectors.toList(),
-                    this::sortAndExtractMessages
-                ));
+                .sorted((msg1, msg2) -> Integer.compare(msg1.timestamp(), msg2.timestamp()))
+                .map(LogMessage.ValidMessage::message)
+                .toList();
     }
 
     /**
@@ -105,10 +98,11 @@ public class Exercise5 {
     }
 
     /**
-     * Sort messages by timestamp and extract message strings
+     * Sort messages by timestamp and extract message strings using functional composition
      */
     private List<String> sortAndExtractMessages(List<LogMessage.ValidMessage> messages) {
-        return sortMessagesByTimestamp(messages).stream()
+        return messages.stream()
+                .sorted((msg1, msg2) -> Integer.compare(msg1.timestamp(), msg2.timestamp()))
                 .map(LogMessage.ValidMessage::message)
                 .toList();
     }
@@ -136,31 +130,25 @@ public class Exercise5 {
     }
 
     /**
-     * Get all high-severity errors with their details (utility method)
+     * Get all high-severity errors with their details using pure functional pipeline
      */
     public List<LogMessage.ValidMessage> getHighSeverityErrors(List<LogMessage> messages) {
-        if (messages == null) {
-            throw new IllegalArgumentException("Messages list cannot be null");
-        }
-
-        return messages.stream()
+        return Optional.ofNullable(messages)
+                .map(List::stream)
+                .orElse(Stream.empty())
                 .filter(this::isHighSeverityError)
                 .map(msg -> (LogMessage.ValidMessage) msg)
-                .collect(java.util.stream.Collectors.collectingAndThen(
-                    java.util.stream.Collectors.toList(),
-                    this::sortMessagesByTimestamp
-                ));
+                .sorted((msg1, msg2) -> Integer.compare(msg1.timestamp(), msg2.timestamp()))
+                .toList();
     }
 
     /**
-     * Count high-severity errors in a list
+     * Count high-severity errors in a list using Optional for null safety
      */
     public long countHighSeverityErrors(List<LogMessage> messages) {
-        if (messages == null) {
-            return 0;
-        }
-
-        return messages.stream()
+        return Optional.ofNullable(messages)
+                .map(List::stream)
+                .orElse(Stream.empty())
                 .filter(this::isHighSeverityError)
                 .count();
     }

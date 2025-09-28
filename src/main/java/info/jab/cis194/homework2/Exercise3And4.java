@@ -1,7 +1,7 @@
 package info.jab.cis194.homework2;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Exercise 3 & 4 - MessageTree Build and InOrder Functions
@@ -21,7 +21,7 @@ public class Exercise3And4 {
     private final Exercise2 insertHelper = new Exercise2();
 
     /**
-     * Exercise 3: Build a MessageTree from a list of LogMessages.
+     * Exercise 3: Build a MessageTree from a list of LogMessages using functional composition.
      *
      * This function successively inserts messages into a MessageTree starting with an empty tree.
      * Unknown messages are ignored (not inserted into the tree).
@@ -31,33 +31,28 @@ public class Exercise3And4 {
      * @return MessageTree containing all valid messages from the list
      */
     public MessageTree build(List<LogMessage> messages) {
-        if (messages == null) {
-            throw new IllegalArgumentException("Messages list cannot be null");
-        }
-
-        return messages.stream()
+        return Optional.ofNullable(messages)
+                .map(List::stream)
+                .orElse(java.util.stream.Stream.empty())
                 .reduce(MessageTree.leaf(),
                        (tree, message) -> insertHelper.insert(message, tree),
                        (tree1, tree2) -> tree2); // Combiner not used in sequential stream
     }
 
     /**
-     * Alternative implementation using explicit fold/reduce pattern
+     * Alternative implementation using explicit fold/reduce pattern with Optional
      */
     public MessageTree buildAlternative(List<LogMessage> messages) {
-        if (messages == null) {
-            throw new IllegalArgumentException("Messages list cannot be null");
-        }
-
-        MessageTree tree = MessageTree.leaf();
-        for (LogMessage message : messages) {
-            tree = insertHelper.insert(message, tree);
-        }
-        return tree;
+        return Optional.ofNullable(messages)
+                .orElse(List.of())
+                .stream()
+                .reduce(MessageTree.leaf(),
+                       (tree, message) -> insertHelper.insert(message, tree),
+                       (tree1, tree2) -> tree2);
     }
 
     /**
-     * Exercise 4: Perform in-order traversal of a MessageTree.
+     * Exercise 4: Perform in-order traversal of a MessageTree using functional approach.
      *
      * Returns a list of all LogMessages in the tree, sorted by timestamp from smallest to largest.
      * This is the standard in-order traversal of a binary search tree.
@@ -66,11 +61,9 @@ public class Exercise3And4 {
      * @return List of ValidMessages sorted by timestamp (ascending order)
      */
     public List<LogMessage.ValidMessage> inOrder(MessageTree tree) {
-        if (tree == null) {
-            throw new IllegalArgumentException("MessageTree cannot be null");
-        }
-
-        return inOrderHelper(tree, new ArrayList<>());
+        return Optional.ofNullable(tree)
+                .map(this::inOrderFunctional)
+                .orElse(List.of());
     }
 
     /**
@@ -90,25 +83,21 @@ public class Exercise3And4 {
     }
 
     /**
-     * Alternative functional implementation using streams and recursion
+     * Functional implementation using streams and recursion with immutable operations
      */
     public List<LogMessage.ValidMessage> inOrderFunctional(MessageTree tree) {
-        if (tree == null) {
-            throw new IllegalArgumentException("MessageTree cannot be null");
-        }
-
         return switch (tree) {
             case MessageTree.Leaf leaf -> List.of();
             case MessageTree.Node node -> {
                 List<LogMessage.ValidMessage> leftMessages = inOrderFunctional(node.left());
                 List<LogMessage.ValidMessage> rightMessages = inOrderFunctional(node.right());
 
-                // Combine: left + current + right
-                var result = new ArrayList<LogMessage.ValidMessage>();
-                result.addAll(leftMessages);
-                result.add(node.message());
-                result.addAll(rightMessages);
-                yield List.copyOf(result);
+                // Combine: left + current + right using functional composition
+                yield java.util.stream.Stream.of(
+                    leftMessages.stream(),
+                    java.util.stream.Stream.of(node.message()),
+                    rightMessages.stream()
+                ).flatMap(java.util.function.Function.identity()).toList();
             }
         };
     }
@@ -135,12 +124,14 @@ public class Exercise3And4 {
     }
 
     /**
-     * Utility method to sort a list of LogMessages using build + inOrder
+     * Utility method to sort a list of LogMessages using functional composition of build + inOrder
      * This demonstrates the combination of exercises 3 and 4
      */
     public List<LogMessage.ValidMessage> sortMessages(List<LogMessage> messages) {
-        MessageTree tree = build(messages);
-        return inOrder(tree);
+        return Optional.ofNullable(messages)
+                .map(this::build)
+                .map(this::inOrder)
+                .orElse(List.of());
     }
 
     /**

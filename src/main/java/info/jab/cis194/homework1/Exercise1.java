@@ -2,7 +2,6 @@ package info.jab.cis194.homework1;
 
 import java.util.List;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -26,16 +25,7 @@ public class Exercise1 {
     public List<Integer> toDigits(long n) {
         return n < 0 ? List.of() :
                n == 0 ? List.of(0) :
-               toDigitsRev(n).stream()
-                   .collect(Collectors.collectingAndThen(
-                       Collectors.toList(),
-                       list -> {
-                           var reversed = List.copyOf(list);
-                           return IntStream.range(0, reversed.size())
-                                          .mapToObj(i -> reversed.get(reversed.size() - 1 - i))
-                                          .toList();
-                       }
-                   ));
+               toDigitsRev(n).reversed(); // Java 21+ List.reversed() for immutable reverse
     }
 
     /**

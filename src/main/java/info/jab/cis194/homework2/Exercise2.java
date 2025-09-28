@@ -1,5 +1,7 @@
 package info.jab.cis194.homework2;
 
+import java.util.Optional;
+
 /**
  * Exercise 2 - MessageTree Insert Function
  * Functional implementation of binary search tree insertion based on CIS-194 Homework 2
@@ -13,7 +15,7 @@ package info.jab.cis194.homework2;
 public class Exercise2 {
 
     /**
-     * Insert a LogMessage into a MessageTree, producing a new MessageTree.
+     * Insert a LogMessage into a MessageTree, producing a new MessageTree using functional approach.
      *
      * The tree maintains BST ordering by timestamp:
      * - Messages with smaller timestamps go to the left subtree
@@ -24,21 +26,15 @@ public class Exercise2 {
      * @param logMessage the message to insert
      * @param tree the tree to insert into
      * @return new MessageTree containing the inserted message (if valid)
-     * @throws IllegalArgumentException if logMessage or tree is null
      */
     public MessageTree insert(LogMessage logMessage, MessageTree tree) {
-        if (logMessage == null) {
-            throw new IllegalArgumentException("LogMessage cannot be null");
-        }
-        if (tree == null) {
-            throw new IllegalArgumentException("MessageTree cannot be null");
-        }
-
-        // Only insert valid messages, ignore unknown messages
-        return switch (logMessage) {
-            case LogMessage.ValidMessage validMessage -> insertValid(validMessage, tree);
-            case LogMessage.Unknown unknown -> tree; // Return unchanged tree
-        };
+        return Optional.ofNullable(logMessage)
+                .filter(msg -> tree != null)
+                .map(msg -> switch (msg) {
+                    case LogMessage.ValidMessage validMessage -> insertValid(validMessage, tree);
+                    case LogMessage.Unknown unknown -> tree; // Return unchanged tree
+                })
+                .orElseThrow(() -> new IllegalArgumentException("LogMessage and MessageTree cannot be null"));
     }
 
     /**
@@ -68,19 +64,15 @@ public class Exercise2 {
     }
 
     /**
-     * Alternative implementation using explicit recursion with helper method
+     * Alternative implementation using Optional and functional composition
      */
     public MessageTree insertAlternative(LogMessage logMessage, MessageTree tree) {
-        if (logMessage == null || tree == null) {
-            throw new IllegalArgumentException("Arguments cannot be null");
-        }
-
-        // Only process valid messages
-        if (logMessage instanceof LogMessage.ValidMessage validMessage) {
-            return insertRecursive(validMessage, tree);
-        }
-
-        return tree; // Unknown messages don't get inserted
+        return Optional.ofNullable(logMessage)
+                .filter(msg -> tree != null)
+                .flatMap(msg -> msg instanceof LogMessage.ValidMessage validMessage ?
+                        Optional.of(insertRecursive(validMessage, tree)) :
+                        Optional.of(tree))
+                .orElseThrow(() -> new IllegalArgumentException("Arguments cannot be null"));
     }
 
     private MessageTree insertRecursive(LogMessage.ValidMessage message, MessageTree tree) {
@@ -105,17 +97,16 @@ public class Exercise2 {
     }
 
     /**
-     * Utility method to insert multiple messages into a tree
+     * Utility method to insert multiple messages into a tree using functional composition
      */
     public MessageTree insertAll(java.util.List<LogMessage> messages, MessageTree initialTree) {
-        if (messages == null || initialTree == null) {
-            throw new IllegalArgumentException("Arguments cannot be null");
-        }
-
-        return messages.stream()
-                .reduce(initialTree,
-                       (tree, message) -> insert(message, tree),
-                       (tree1, tree2) -> tree2); // Combiner not used in sequential stream
+        return Optional.ofNullable(messages)
+                .filter(msgs -> initialTree != null)
+                .map(msgs -> msgs.stream()
+                        .reduce(initialTree,
+                               (tree, message) -> insert(message, tree),
+                               (tree1, tree2) -> tree2))
+                .orElseThrow(() -> new IllegalArgumentException("Arguments cannot be null"));
     }
 
     /**
