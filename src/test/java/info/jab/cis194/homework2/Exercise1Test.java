@@ -52,10 +52,10 @@ class Exercise1Test {
         void should_parseInfoMessages_when_validInfoFormatProvided(String input, String expectedType, int expectedTimestamp, String expectedMessage) {
             // Given
             String logLine = input;
-            
+
             // When
             LogMessage result = exercise.parseMessage(logLine);
-            
+
             // Then
             assertThat(result)
                 .isInstanceOf(LogMessage.ValidMessage.class)
@@ -76,10 +76,10 @@ class Exercise1Test {
         void should_parseWarningMessages_when_validWarningFormatProvided(String input, String expectedType, int expectedTimestamp, String expectedMessage) {
             // Given
             String logLine = input;
-            
+
             // When
             LogMessage result = exercise.parseMessage(logLine);
-            
+
             // Then
             assertThat(result)
                 .isInstanceOf(LogMessage.ValidMessage.class)
@@ -102,10 +102,10 @@ class Exercise1Test {
         void should_parseErrorMessages_when_validErrorFormatProvided(String input, int expectedSeverity, int expectedTimestamp, String expectedMessage) {
             // Given
             String logLine = input;
-            
+
             // When
             LogMessage result = exercise.parseMessage(logLine);
-            
+
             // Then
             assertThat(result)
                 .isInstanceOf(LogMessage.ValidMessage.class)
@@ -114,7 +114,7 @@ class Exercise1Test {
                     assertThat(validMsg.messageType())
                         .isInstanceOf(MessageType.Error.class)
                         .extracting(type -> (MessageType.Error) type)
-                        .satisfies(errorType -> 
+                        .satisfies(errorType ->
                             assertThat(errorType.severity()).isEqualTo(expectedSeverity));
                     assertThat(validMsg.timestamp()).isEqualTo(expectedTimestamp);
                     assertThat(validMsg.message()).isEqualTo(expectedMessage);
