@@ -1,5 +1,7 @@
 package info.jab.cis194.homework11;
 
+import info.jab.cis194.homework11.Exercise1.ListMonad;
+import info.jab.cis194.homework11.Exercise1.Maybe;
 import java.util.List;
 import java.util.function.Function;
 import org.junit.jupiter.api.DisplayName;
@@ -34,7 +36,7 @@ class Exercise1Test {
             Integer inputValue = 42;
 
             // When
-            Exercise1.Maybe<Integer> actualMaybe = Exercise1.Maybe.pure(inputValue);
+            Maybe<Integer> actualMaybe = Maybe.pure(inputValue);
 
             // Then
             assertThat(actualMaybe.isJust())
@@ -51,7 +53,7 @@ class Exercise1Test {
             // Given - no input needed for Nothing
 
             // When
-            Exercise1.Maybe<Integer> actualMaybe = Exercise1.Maybe.<Integer>nothing();
+            Maybe<Integer> actualMaybe = Maybe.<Integer>nothing();
 
             // Then
             assertThat(actualMaybe.isJust())
@@ -66,11 +68,11 @@ class Exercise1Test {
         @DisplayName("Should apply function transformation when mapping over Just value")
         void shouldApplyFunctionTransformationWhenMappingOverJustValue() {
             // Given
-            Exercise1.Maybe<Integer> inputMaybe = Exercise1.Maybe.pure(10);
+            Maybe<Integer> inputMaybe = Maybe.pure(10);
             Function<Integer, String> transformationFunction = x -> "Value: " + x;
 
             // When
-            Exercise1.Maybe<String> actualResult = inputMaybe.fmap(transformationFunction);
+            Maybe<String> actualResult = inputMaybe.fmap(transformationFunction);
 
             // Then
             assertThat(actualResult.isJust())
@@ -85,11 +87,11 @@ class Exercise1Test {
         @DisplayName("Should preserve Nothing when mapping over Nothing value")
         void shouldPreserveNothingWhenMappingOverNothingValue() {
             // Given
-            Exercise1.Maybe<Integer> inputMaybe = Exercise1.Maybe.<Integer>nothing();
+            Maybe<Integer> inputMaybe = Maybe.<Integer>nothing();
             Function<Integer, String> transformationFunction = x -> "Value: " + x;
 
             // When
-            Exercise1.Maybe<String> actualResult = inputMaybe.fmap(transformationFunction);
+            Maybe<String> actualResult = inputMaybe.fmap(transformationFunction);
 
             // Then
             assertThat(actualResult.isNothing())
@@ -101,12 +103,12 @@ class Exercise1Test {
         @DisplayName("Should chain computations when binding Just value with function returning Just")
         void shouldChainComputationsWhenBindingJustValueWithFunctionReturningJust() {
             // Given
-            Exercise1.Maybe<Integer> inputMaybe = Exercise1.Maybe.pure(5);
-            Function<Integer, Exercise1.Maybe<String>> monadicFunction =
-                x -> Exercise1.Maybe.pure("Number: " + x);
+            Maybe<Integer> inputMaybe = Maybe.pure(5);
+            Function<Integer, Maybe<String>> monadicFunction =
+                x -> Maybe.pure("Number: " + x);
 
             // When
-            Exercise1.Maybe<String> actualResult = inputMaybe.bind(monadicFunction);
+            Maybe<String> actualResult = inputMaybe.bind(monadicFunction);
 
             // Then
             assertThat(actualResult.isJust())
@@ -121,11 +123,11 @@ class Exercise1Test {
         @DisplayName("Should short-circuit to Nothing when binding Just value with function returning Nothing")
         void shouldShortCircuitToNothingWhenBindingJustValueWithFunctionReturningNothing() {
             // Given
-            Exercise1.Maybe<Integer> inputMaybe = Exercise1.Maybe.pure(5);
-            Function<Integer, Exercise1.Maybe<String>> monadicFunction = x -> Exercise1.Maybe.nothing();
+            Maybe<Integer> inputMaybe = Maybe.pure(5);
+            Function<Integer, Maybe<String>> monadicFunction = x -> Maybe.nothing();
 
             // When
-            Exercise1.Maybe<String> actualResult = inputMaybe.bind(monadicFunction);
+            Maybe<String> actualResult = inputMaybe.bind(monadicFunction);
 
             // Then
             assertThat(actualResult.isNothing())
@@ -137,12 +139,12 @@ class Exercise1Test {
         @DisplayName("Should preserve Nothing when binding Nothing value with any function")
         void shouldPreserveNothingWhenBindingNothingValueWithAnyFunction() {
             // Given
-            Exercise1.Maybe<Integer> inputMaybe = Exercise1.Maybe.<Integer>nothing();
-            Function<Integer, Exercise1.Maybe<String>> monadicFunction =
-                x -> Exercise1.Maybe.pure("Number: " + x);
+            Maybe<Integer> inputMaybe = Maybe.<Integer>nothing();
+            Function<Integer, Maybe<String>> monadicFunction =
+                x -> Maybe.pure("Number: " + x);
 
             // When
-            Exercise1.Maybe<String> actualResult = inputMaybe.bind(monadicFunction);
+            Maybe<String> actualResult = inputMaybe.bind(monadicFunction);
 
             // Then
             assertThat(actualResult.isNothing())
@@ -162,7 +164,7 @@ class Exercise1Test {
             Integer inputValue = 42;
 
             // When
-            Exercise1.ListMonad<Integer> actualListMonad = Exercise1.ListMonad.pure(inputValue);
+            ListMonad<Integer> actualListMonad = ListMonad.pure(inputValue);
 
             // Then
             assertThat(actualListMonad.getValues())
@@ -174,11 +176,11 @@ class Exercise1Test {
         @DisplayName("Should transform all elements when mapping over list values")
         void shouldTransformAllElementsWhenMappingOverListValues() {
             // Given
-            Exercise1.ListMonad<Integer> inputListMonad = Exercise1.ListMonad.of(List.of(1, 2, 3));
+            ListMonad<Integer> inputListMonad = ListMonad.of(List.of(1, 2, 3));
             Function<Integer, String> transformationFunction = x -> "Item: " + x;
 
             // When
-            Exercise1.ListMonad<String> actualResult = inputListMonad.fmap(transformationFunction);
+            ListMonad<String> actualResult = inputListMonad.fmap(transformationFunction);
 
             // Then
             assertThat(actualResult.getValues())
@@ -190,12 +192,12 @@ class Exercise1Test {
         @DisplayName("Should flatten nested lists when binding list with function returning lists")
         void shouldFlattenNestedListsWhenBindingListWithFunctionReturningLists() {
             // Given
-            Exercise1.ListMonad<Integer> inputListMonad = Exercise1.ListMonad.of(List.of(1, 2, 3));
-            Function<Integer, Exercise1.ListMonad<String>> monadicFunction = x ->
-                Exercise1.ListMonad.of(List.of("a" + x, "b" + x));
+            ListMonad<Integer> inputListMonad = ListMonad.of(List.of(1, 2, 3));
+            Function<Integer, ListMonad<String>> monadicFunction = x ->
+                ListMonad.of(List.of("a" + x, "b" + x));
 
             // When
-            Exercise1.ListMonad<String> actualResult = inputListMonad.bind(monadicFunction);
+            ListMonad<String> actualResult = inputListMonad.bind(monadicFunction);
 
             // Then
             assertThat(actualResult.getValues())
@@ -207,12 +209,12 @@ class Exercise1Test {
         @DisplayName("Should return empty list when binding empty list with any function")
         void shouldReturnEmptyListWhenBindingEmptyListWithAnyFunction() {
             // Given
-            Exercise1.ListMonad<Integer> inputListMonad = Exercise1.ListMonad.of(List.<Integer>of());
-            Function<Integer, Exercise1.ListMonad<String>> monadicFunction = x ->
-                Exercise1.ListMonad.of(List.of("a" + x, "b" + x));
+            ListMonad<Integer> inputListMonad = ListMonad.of(List.<Integer>of());
+            Function<Integer, ListMonad<String>> monadicFunction = x ->
+                ListMonad.of(List.of("a" + x, "b" + x));
 
             // When
-            Exercise1.ListMonad<String> actualResult = inputListMonad.bind(monadicFunction);
+            ListMonad<String> actualResult = inputListMonad.bind(monadicFunction);
 
             // Then
             assertThat(actualResult.getValues())
@@ -303,16 +305,16 @@ class Exercise1Test {
         @DisplayName("Should compose monadic functions successfully when both succeed")
         void shouldComposeMonadicFunctionsSuccessfullyWhenBothSucceed() {
             // Given
-            Function<Integer, Exercise1.Maybe<Integer>> firstMonadicFunction = x ->
-                x > 0 ? Exercise1.Maybe.pure(x * 2) : Exercise1.Maybe.nothing();
-            Function<Integer, Exercise1.Maybe<String>> secondMonadicFunction = x ->
-                x < 100 ? Exercise1.Maybe.pure("Result: " + x) : Exercise1.Maybe.nothing();
+            Function<Integer, Maybe<Integer>> firstMonadicFunction = x ->
+                x > 0 ? Maybe.pure(x * 2) : Maybe.nothing();
+            Function<Integer, Maybe<String>> secondMonadicFunction = x ->
+                x < 100 ? Maybe.pure("Result: " + x) : Maybe.nothing();
             Integer inputValue = 10;
 
             // When
-            Function<Integer, Exercise1.Maybe<String>> actualComposedFunction =
+            Function<Integer, Maybe<String>> actualComposedFunction =
                 Exercise1.kleisliCompose(secondMonadicFunction, firstMonadicFunction);
-            Exercise1.Maybe<String> actualResult = actualComposedFunction.apply(inputValue);
+            Maybe<String> actualResult = actualComposedFunction.apply(inputValue);
 
             // Then
             assertThat(actualResult.isJust())
@@ -327,16 +329,16 @@ class Exercise1Test {
         @DisplayName("Should short-circuit to Nothing when first monadic function fails")
         void shouldShortCircuitToNothingWhenFirstMonadicFunctionFails() {
             // Given
-            Function<Integer, Exercise1.Maybe<Integer>> firstMonadicFunction = x ->
-                x > 0 ? Exercise1.Maybe.pure(x * 2) : Exercise1.Maybe.nothing();
-            Function<Integer, Exercise1.Maybe<String>> secondMonadicFunction = x ->
-                x < 100 ? Exercise1.Maybe.pure("Result: " + x) : Exercise1.Maybe.nothing();
+            Function<Integer, Maybe<Integer>> firstMonadicFunction = x ->
+                x > 0 ? Maybe.pure(x * 2) : Maybe.nothing();
+            Function<Integer, Maybe<String>> secondMonadicFunction = x ->
+                x < 100 ? Maybe.pure("Result: " + x) : Maybe.nothing();
             Integer inputValue = -5;
 
             // When
-            Function<Integer, Exercise1.Maybe<String>> actualComposedFunction =
+            Function<Integer, Maybe<String>> actualComposedFunction =
                 Exercise1.kleisliCompose(secondMonadicFunction, firstMonadicFunction);
-            Exercise1.Maybe<String> actualResult = actualComposedFunction.apply(inputValue);
+            Maybe<String> actualResult = actualComposedFunction.apply(inputValue);
 
             // Then
             assertThat(actualResult.isNothing())
@@ -348,16 +350,16 @@ class Exercise1Test {
         @DisplayName("Should short-circuit to Nothing when second monadic function fails")
         void shouldShortCircuitToNothingWhenSecondMonadicFunctionFails() {
             // Given
-            Function<Integer, Exercise1.Maybe<Integer>> firstMonadicFunction = x ->
-                x > 0 ? Exercise1.Maybe.pure(x * 200) : Exercise1.Maybe.nothing();
-            Function<Integer, Exercise1.Maybe<String>> secondMonadicFunction = x ->
-                x < 100 ? Exercise1.Maybe.pure("Result: " + x) : Exercise1.Maybe.nothing();
+            Function<Integer, Maybe<Integer>> firstMonadicFunction = x ->
+                x > 0 ? Maybe.pure(x * 200) : Maybe.nothing();
+            Function<Integer, Maybe<String>> secondMonadicFunction = x ->
+                x < 100 ? Maybe.pure("Result: " + x) : Maybe.nothing();
             Integer inputValue = 10;
 
             // When
-            Function<Integer, Exercise1.Maybe<String>> actualComposedFunction =
+            Function<Integer, Maybe<String>> actualComposedFunction =
                 Exercise1.kleisliCompose(secondMonadicFunction, firstMonadicFunction);
-            Exercise1.Maybe<String> actualResult = actualComposedFunction.apply(inputValue);
+            Maybe<String> actualResult = actualComposedFunction.apply(inputValue);
 
             // Then
             assertThat(actualResult.isNothing())
@@ -374,14 +376,14 @@ class Exercise1Test {
         @DisplayName("Should collect all values when sequencing list of all Just values")
         void shouldCollectAllValuesWhenSequencingListOfAllJustValues() {
             // Given
-            List<Exercise1.Maybe<Integer>> inputMaybes = List.of(
-                Exercise1.Maybe.pure(1),
-                Exercise1.Maybe.pure(2),
-                Exercise1.Maybe.pure(3)
+            List<Maybe<Integer>> inputMaybes = List.of(
+                Maybe.pure(1),
+                Maybe.pure(2),
+                Maybe.pure(3)
             );
 
             // When
-            Exercise1.Maybe<List<Integer>> actualResult = Exercise1.sequenceMaybe(inputMaybes);
+            Maybe<List<Integer>> actualResult = Exercise1.sequenceMaybe(inputMaybes);
 
             // Then
             assertThat(actualResult.isJust())
@@ -396,14 +398,14 @@ class Exercise1Test {
         @DisplayName("Should return Nothing when sequencing list containing any Nothing value")
         void shouldReturnNothingWhenSequencingListContainingAnyNothingValue() {
             // Given
-            List<Exercise1.Maybe<Integer>> inputMaybes = List.of(
-                Exercise1.Maybe.pure(1),
-                Exercise1.Maybe.<Integer>nothing(),
-                Exercise1.Maybe.pure(3)
+            List<Maybe<Integer>> inputMaybes = List.of(
+                Maybe.pure(1),
+                Maybe.<Integer>nothing(),
+                Maybe.pure(3)
             );
 
             // When
-            Exercise1.Maybe<List<Integer>> actualResult = Exercise1.sequenceMaybe(inputMaybes);
+            Maybe<List<Integer>> actualResult = Exercise1.sequenceMaybe(inputMaybes);
 
             // Then
             assertThat(actualResult.isNothing())
@@ -416,11 +418,11 @@ class Exercise1Test {
         void shouldReturnNothingWhenTraversingListWithFunctionThatFailsForAnyElement() {
             // Given
             List<Integer> inputNumbers = List.of(1, 2, 3, 4);
-            Function<Integer, Exercise1.Maybe<String>> monadicFunction = x ->
-                x <= 3 ? Exercise1.Maybe.pure("Item: " + x) : Exercise1.Maybe.nothing();
+            Function<Integer, Maybe<String>> monadicFunction = x ->
+                x <= 3 ? Maybe.pure("Item: " + x) : Maybe.nothing();
 
             // When
-            Exercise1.Maybe<List<String>> actualResult = Exercise1.traverseMaybe(inputNumbers, monadicFunction);
+            Maybe<List<String>> actualResult = Exercise1.traverseMaybe(inputNumbers, monadicFunction);
 
             // Then
             assertThat(actualResult.isNothing())
@@ -433,11 +435,11 @@ class Exercise1Test {
         void shouldCollectTransformedValuesWhenTraversingListWithFunctionThatSucceedsForAllElements() {
             // Given
             List<Integer> inputNumbers = List.of(1, 2, 3);
-            Function<Integer, Exercise1.Maybe<String>> monadicFunction = x ->
-                x <= 3 ? Exercise1.Maybe.pure("Item: " + x) : Exercise1.Maybe.nothing();
+            Function<Integer, Maybe<String>> monadicFunction = x ->
+                x <= 3 ? Maybe.pure("Item: " + x) : Maybe.nothing();
 
             // When
-            Exercise1.Maybe<List<String>> actualResult = Exercise1.traverseMaybe(inputNumbers, monadicFunction);
+            Maybe<List<String>> actualResult = Exercise1.traverseMaybe(inputNumbers, monadicFunction);
 
             // Then
             assertThat(actualResult.isJust())
