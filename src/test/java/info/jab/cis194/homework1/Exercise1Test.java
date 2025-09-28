@@ -12,7 +12,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Test class for Exercise 1 - Credit Card Validation
@@ -47,15 +47,28 @@ class Exercise1Test {
             "987654321, '9,8,7,6,5,4,3,2,1'"
         })
         void shouldConvertPositiveNumbersToDigits(long input, String expected) {
+            // Given
             List<Integer> expectedDigits = parseExpectedDigits(expected);
-            assertThat(exercise.toDigits(input)).isEqualTo(expectedDigits);
+
+            // When
+            List<Integer> result = exercise.toDigits(input);
+
+            // Then
+            assertThat(result).isEqualTo(expectedDigits);
         }
 
         @ParameterizedTest
         @DisplayName("Should return empty list for negative numbers")
         @ValueSource(longs = {-17, -1, -999})
         void shouldReturnEmptyListForNegativeNumbers(long input) {
-            assertThat(exercise.toDigits(input)).isEmpty();
+            // Given
+            // Input is provided via @ValueSource
+
+            // When
+            List<Integer> result = exercise.toDigits(input);
+
+            // Then
+            assertThat(result).isEmpty();
         }
 
         @ParameterizedTest
@@ -67,15 +80,28 @@ class Exercise1Test {
             "987654321, '1,2,3,4,5,6,7,8,9'"
         })
         void shouldConvertPositiveNumbersToReversedDigits(long input, String expected) {
+            // Given
             List<Integer> expectedDigits = parseExpectedDigits(expected);
-            assertThat(exercise.toDigitsRev(input)).isEqualTo(expectedDigits);
+
+            // When
+            List<Integer> result = exercise.toDigitsRev(input);
+
+            // Then
+            assertThat(result).isEqualTo(expectedDigits);
         }
 
         @ParameterizedTest
         @DisplayName("Should return empty list for negative numbers (reversed)")
         @ValueSource(longs = {-17, -1, -999})
         void shouldReturnEmptyListForNegativeNumbersReversed(long input) {
-            assertThat(exercise.toDigitsRev(input)).isEmpty();
+            // Given
+            // Input is provided via @ValueSource
+
+            // When
+            List<Integer> result = exercise.toDigitsRev(input);
+
+            // Then
+            assertThat(result).isEmpty();
         }
     }
 
@@ -87,7 +113,14 @@ class Exercise1Test {
         @DisplayName("Should double every other element correctly")
         @MethodSource("doubleEveryOtherTestCases")
         void shouldDoubleEveryOtherElement(List<Integer> input, List<Integer> expected) {
-            assertThat(exercise.doubleEveryOther(input)).isEqualTo(expected);
+            // Given
+            // Input and expected are provided via @MethodSource
+
+            // When
+            List<Integer> result = exercise.doubleEveryOther(input);
+
+            // Then
+            assertThat(result).isEqualTo(expected);
         }
 
         static Stream<Arguments> doubleEveryOtherTestCases() {
@@ -109,7 +142,14 @@ class Exercise1Test {
         @DisplayName("Should sum all digits correctly")
         @MethodSource("sumDigitsTestCases")
         void shouldSumAllDigitsCorrectly(List<Integer> input, int expected) {
-            assertThat(exercise.sumDigits(input)).isEqualTo(expected);
+            // Given
+            // Input and expected are provided via @MethodSource
+
+            // When
+            int result = exercise.sumDigits(input);
+
+            // Then
+            assertThat(result).isEqualTo(expected);
         }
 
         static Stream<Arguments> sumDigitsTestCases() {
@@ -134,7 +174,14 @@ class Exercise1Test {
         @DisplayName("Should validate valid credit card numbers")
         @ValueSource(longs = {4012888888881881L, 4111111111111111L})
         void shouldValidateValidCreditCardNumbers(long cardNumber) {
-            assertThat(exercise.validate(cardNumber))
+            // Given
+            // Card number is provided via @ValueSource
+
+            // When
+            boolean result = exercise.validate(cardNumber);
+
+            // Then
+            assertThat(result)
                 .as("Credit card number %d should be valid", cardNumber)
                 .isTrue();
         }
@@ -143,7 +190,14 @@ class Exercise1Test {
         @DisplayName("Should reject invalid credit card numbers")
         @ValueSource(longs = {4012888888881882L, 1234567890123456L})
         void shouldRejectInvalidCreditCardNumbers(long cardNumber) {
-            assertThat(exercise.validate(cardNumber))
+            // Given
+            // Card number is provided via @ValueSource
+
+            // When
+            boolean result = exercise.validate(cardNumber);
+
+            // Then
+            assertThat(result)
                 .as("Credit card number %d should be invalid", cardNumber)
                 .isFalse();
         }
@@ -151,19 +205,39 @@ class Exercise1Test {
         @Test
         @DisplayName("Should handle edge cases for validation")
         void shouldHandleEdgeCasesForValidation() {
-            // Test with some additional invalid credit card numbers
-            assertThat(exercise.validate(1111111111111112L)).isFalse();
-            assertThat(exercise.validate(5555555555555556L)).isFalse();
+            // Given
+            long invalidCard1 = 1111111111111112L;
+            long invalidCard2 = 5555555555555556L;
+
+            // When
+            boolean result1 = exercise.validate(invalidCard1);
+            boolean result2 = exercise.validate(invalidCard2);
+
+            // Then
+            assertThat(result1).isFalse();
+            assertThat(result2).isFalse();
         }
 
         @Test
         @DisplayName("Should validate using functional approach")
         void shouldValidateUsingFunctionalApproach() {
-            // Test that the functional validation produces same results
-            assertThat(exercise.validateFunctional(4012888888881881L)).isTrue();
-            assertThat(exercise.validateFunctional(4111111111111111L)).isTrue();
-            assertThat(exercise.validateFunctional(4012888888881882L)).isFalse();
-            assertThat(exercise.validateFunctional(1234567890123456L)).isFalse();
+            // Given
+            long validCard1 = 4012888888881881L;
+            long validCard2 = 4111111111111111L;
+            long invalidCard1 = 4012888888881882L;
+            long invalidCard2 = 1234567890123456L;
+
+            // When
+            boolean validResult1 = exercise.validateFunctional(validCard1);
+            boolean validResult2 = exercise.validateFunctional(validCard2);
+            boolean invalidResult1 = exercise.validateFunctional(invalidCard1);
+            boolean invalidResult2 = exercise.validateFunctional(invalidCard2);
+
+            // Then
+            assertThat(validResult1).isTrue();
+            assertThat(validResult2).isTrue();
+            assertThat(invalidResult1).isFalse();
+            assertThat(invalidResult2).isFalse();
         }
     }
 
