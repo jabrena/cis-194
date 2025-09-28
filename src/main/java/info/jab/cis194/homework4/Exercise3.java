@@ -1,7 +1,9 @@
 package info.jab.cis194.homework4;
 
 import java.util.List;
+import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * Exercise 3: More Folds
@@ -14,6 +16,58 @@ import java.util.function.Function;
  * using folds, which are a powerful abstraction in functional programming.
  */
 public class Exercise3 {
+
+    /**
+     * Trampoline interface for stack-safe recursion
+     */
+    @FunctionalInterface
+    private interface Trampoline<T> {
+        Trampoline<T> apply();
+
+        default boolean isComplete() {
+            return false;
+        }
+
+        default T result() {
+            throw new UnsupportedOperationException("Not completed yet");
+        }
+
+        default T evaluate() {
+            Trampoline<T> current = this;
+            while (!current.isComplete()) {
+                current = current.apply();
+            }
+            return current.result();
+        }
+
+        static <T> Trampoline<T> complete(T result) {
+            return new Trampoline<T>() {
+                @Override
+                public Trampoline<T> apply() {
+                    throw new UnsupportedOperationException("Already completed");
+                }
+
+                @Override
+                public boolean isComplete() {
+                    return true;
+                }
+
+                @Override
+                public T result() {
+                    return result;
+                }
+            };
+        }
+
+        static <T> Trampoline<T> more(Supplier<Trampoline<T>> supplier) {
+            return new Trampoline<T>() {
+                @Override
+                public Trampoline<T> apply() {
+                    return supplier.get();
+                }
+            };
+        }
+    }
 
     /**
      * Implements exclusive OR (XOR) over a list of Boolean values using a fold.
@@ -74,7 +128,7 @@ public class Exercise3 {
     }
 
     /**
-     * Implements foldr (right fold) - processes elements from right to left.
+     * Implements foldr (right fold) - processes elements from right to left using trampoline.
      *
      * @param <T> the type of elements in the list
      * @param <R> the type of the result
@@ -83,16 +137,24 @@ public class Exercise3 {
      * @param values the list to fold
      * @return the result of folding the list
      */
-    private static <T, R> R foldr(java.util.function.BiFunction<T, R, R> function, R initial, List<T> values) {
-        if (values.isEmpty()) {
-            return initial;
-        }
+    private static <T, R> R foldr(BiFunction<T, R, R> function, R initial, List<T> values) {
+        return foldrTrampoline(function, initial, values).evaluate();
+    }
 
-        // For right fold, we need to process the tail first, then apply function to head
-        T head = values.get(0);
-        List<T> tail = values.subList(1, values.size());
+    /**
+     * Stack-safe foldr implementation using trampoline
+     * For simplicity, we'll use the iterative approach which is inherently stack-safe
+     */
+    private static <T, R> Trampoline<R> foldrTrampoline(BiFunction<T, R, R> function, R initial, List<T> values) {
+        return Trampoline.complete(foldrIterative(function, initial, values));
+    }
 
-        return function.apply(head, foldr(function, initial, tail));
+    /**
+     * Alternative functional implementation using iterative approach with streams
+     */
+    public static <T, R> R foldrIterative(BiFunction<T, R, R> function, R initial, List<T> values) {
+        return values.reversed().stream()
+            .reduce(initial, (acc, element) -> function.apply(element, acc), (a, b) -> b);
     }
 
     /**
@@ -108,5 +170,46 @@ public class Exercise3 {
             java.util.stream.Stream.of(element),
             list.stream()
         ).toList();
+    }
+
+    /**
+     * Higher-order function that creates an XOR function for any type with a predicate
+     */
+    public static <T> Function<List<T>, Boolean> createXorFunction(Function<T, Boolean> predicate) {
+        return list -> list.stream()
+            .map(predicate)
+            .reduce(false, (acc, value) -> acc ^ value);
+    }
+
+    /**
+     * Curried map function for partial application
+     */
+    public static <T, R> Function<List<T>, List<R>> curriedMap(Function<T, R> function) {
+        return values -> map(function, values);
+    }
+
+    /**
+     * Function composition helper for chaining transformations
+     */
+    public static <T, R, S> Function<List<T>, List<S>> composeTransformations(
+            Function<T, R> first,
+            Function<R, S> second) {
+        return list -> map(first.andThen(second), list);
+    }
+
+    /**
+     * Alternative map implementation using parallel streams for large datasets
+     */
+    public static <T, R> List<R> mapParallel(Function<T, R> function, List<T> values) {
+        if (function == null) {
+            throw new IllegalArgumentException("Function cannot be null");
+        }
+        if (values == null) {
+            throw new IllegalArgumentException("Input list cannot be null");
+        }
+
+        return values.parallelStream()
+            .map(function)
+            .toList();
     }
 }

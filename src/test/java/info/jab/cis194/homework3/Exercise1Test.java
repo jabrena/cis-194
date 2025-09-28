@@ -137,7 +137,7 @@ class Exercise1Test {
             // Given
             List<Integer> input = java.util.stream.IntStream.range(1, 101)
                 .boxed()
-                .collect(java.util.stream.Collectors.toList());
+                .toList();
 
             // When
             List<List<Integer>> actualResult = Exercise1.skips(input);
