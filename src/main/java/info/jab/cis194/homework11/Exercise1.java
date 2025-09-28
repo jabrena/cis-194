@@ -1,6 +1,5 @@
 package info.jab.cis194.homework11;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
@@ -174,7 +173,7 @@ public class Exercise1 {
         private final List<T> values;
 
         private ListMonad(List<T> values) {
-            this.values = new ArrayList<>(values);
+            this.values = List.copyOf(values);
         }
 
         /**
@@ -205,7 +204,7 @@ public class Exercise1 {
          * @return the list of values
          */
         public List<T> getValues() {
-            return new ArrayList<>(values);
+            return values; // Already immutable from List.copyOf
         }
 
         /**
@@ -228,10 +227,10 @@ public class Exercise1 {
          * @return a new ListMonad with the flattened results
          */
         public <U> ListMonad<U> bind(Function<T, ListMonad<U>> f) {
-            var result = new ArrayList<U>();
-            for (T value : values) {
-                result.addAll(f.apply(value).getValues());
-            }
+            List<U> result = values.stream()
+                .map(f)
+                .flatMap(listMonad -> listMonad.getValues().stream())
+                .toList();
             return new ListMonad<>(result);
         }
     }
@@ -276,11 +275,58 @@ public class Exercise1 {
      * @return the result after applying the function n times
      */
     public static <T> T applyN(Function<T, T> f, int n, T initial) {
-        T result = initial;
-        for (int i = 0; i < n; i++) {
-            result = f.apply(result);
+        return Trampoline.execute(applyNTrampoline(f, n, initial));
+    }
+
+    /**
+     * Trampoline interface for tail-recursive optimization
+     */
+    @FunctionalInterface
+    private interface Trampoline<T> {
+        Trampoline<T> apply();
+
+        default boolean isComplete() {
+            return false;
         }
-        return result;
+
+        default T result() {
+            throw new UnsupportedOperationException("Not completed yet");
+        }
+
+        static <T> Trampoline<T> complete(T value) {
+            return new Trampoline<T>() {
+                @Override
+                public boolean isComplete() {
+                    return true;
+                }
+
+                @Override
+                public T result() {
+                    return value;
+                }
+
+                @Override
+                public Trampoline<T> apply() {
+                    throw new UnsupportedOperationException("Already completed");
+                }
+            };
+        }
+
+        static <T> T execute(Trampoline<T> trampoline) {
+            while (!trampoline.isComplete()) {
+                trampoline = trampoline.apply();
+            }
+            return trampoline.result();
+        }
+    }
+
+    /**
+     * Tail-recursive helper for applyN using trampoline
+     */
+    private static <T> Trampoline<T> applyNTrampoline(Function<T, T> f, int n, T current) {
+        return n <= 0
+            ? Trampoline.complete(current)
+            : () -> applyNTrampoline(f, n - 1, f.apply(current));
     }
 
     /**
@@ -307,14 +353,15 @@ public class Exercise1 {
      * @return Maybe containing a list of all values, or Nothing if any input is Nothing
      */
     public static <T> Maybe<List<T>> sequenceMaybe(List<Maybe<T>> maybes) {
-        var result = new ArrayList<T>();
-        for (Maybe<T> maybe : maybes) {
-            if (maybe.isNothing()) {
-                return Maybe.nothing();
-            }
-            result.add(maybe.getValue());
-        }
-        return Maybe.pure(result);
+        return maybes.stream()
+            .filter(Maybe::isNothing)
+            .findAny()
+            .map(nothing -> Maybe.<List<T>>nothing())
+            .orElseGet(() -> Maybe.pure(
+                maybes.stream()
+                    .map(Maybe::getValue)
+                    .toList()
+            ));
     }
 
     /**
