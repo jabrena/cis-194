@@ -4,6 +4,8 @@ target/
 .vscode/
 .cursor/
 .flattened-pom.xml
+# Ignore log files but not test resources
 *.log
+!src/test/resources/*.log
 .classpath
 CURSOR-RULES-JAVA.md
