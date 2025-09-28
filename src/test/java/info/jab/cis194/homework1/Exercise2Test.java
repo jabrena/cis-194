@@ -11,7 +11,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.*;
 
 /**
  * Test class for Exercise 2 - Tower of Hanoi
@@ -42,8 +42,8 @@ class Exercise2Test {
         void shouldHandleBaseCaseMovingOneDisc() {
             List<Exercise2.Move> moves = exercise.hanoi(1, "a", "b", "c");
 
-            assertEquals(1, moves.size());
-            assertEquals(new Exercise2.Move("a", "b"), moves.get(0));
+            assertThat(moves).hasSize(1);
+            assertThat(moves.get(0)).isEqualTo(new Exercise2.Move("a", "b"));
         }
 
         @Test
@@ -51,10 +51,10 @@ class Exercise2Test {
         void shouldGenerateCorrectSequenceForTwoDiscs() {
             List<Exercise2.Move> moves = exercise.hanoi(2, "a", "b", "c");
 
-            assertEquals(3, moves.size());
-            assertEquals(new Exercise2.Move("a", "c"), moves.get(0));
-            assertEquals(new Exercise2.Move("a", "b"), moves.get(1));
-            assertEquals(new Exercise2.Move("c", "b"), moves.get(2));
+            assertThat(moves).hasSize(3);
+            assertThat(moves.get(0)).isEqualTo(new Exercise2.Move("a", "c"));
+            assertThat(moves.get(1)).isEqualTo(new Exercise2.Move("a", "b"));
+            assertThat(moves.get(2)).isEqualTo(new Exercise2.Move("c", "b"));
         }
 
         @Test
@@ -62,7 +62,7 @@ class Exercise2Test {
         void shouldGenerateCorrectSequenceForThreeDiscs() {
             List<Exercise2.Move> moves = exercise.hanoi(3, "a", "b", "c");
 
-            assertEquals(7, moves.size());
+            assertThat(moves).hasSize(7);
 
             // Verify the complete sequence for 3 discs
             List<Exercise2.Move> expectedMoves = List.of(
@@ -75,14 +75,14 @@ class Exercise2Test {
                 new Exercise2.Move("a", "b")
             );
 
-            assertEquals(expectedMoves, moves);
+            assertThat(moves).isEqualTo(expectedMoves);
         }
 
         @Test
         @DisplayName("Should return empty list for 0 discs")
         void shouldReturnEmptyListForZeroDiscs() {
             List<Exercise2.Move> moves = exercise.hanoi(0, "a", "b", "c");
-            assertEquals(0, moves.size());
+            assertThat(moves).isEmpty();
         }
 
         @Test
@@ -90,8 +90,8 @@ class Exercise2Test {
         void shouldHandleDifferentPegNames() {
             List<Exercise2.Move> moves = exercise.hanoi(1, "source", "destination", "auxiliary");
 
-            assertEquals(1, moves.size());
-            assertEquals(new Exercise2.Move("source", "destination"), moves.get(0));
+            assertThat(moves).hasSize(1);
+            assertThat(moves.get(0)).isEqualTo(new Exercise2.Move("source", "destination"));
         }
     }
 
@@ -110,9 +110,9 @@ class Exercise2Test {
         })
         void shouldFollowExponentialMoveCountFormula(int discs, int expectedMoveCount) {
             List<Exercise2.Move> moves = exercise.hanoi(discs, "a", "b", "c");
-            assertEquals(expectedMoveCount, moves.size(),
-                () -> String.format("For %d discs, expected %d moves but got %d",
-                    discs, expectedMoveCount, moves.size()));
+            assertThat(moves)
+                .as("For %d discs, expected %d moves", discs, expectedMoveCount)
+                .hasSize(expectedMoveCount);
         }
 
         @ParameterizedTest
@@ -122,9 +122,10 @@ class Exercise2Test {
             List<Exercise2.Move> moves = exercise.hanoi(discs, "a", "b", "c");
             int expectedMoveCount = (int) Math.pow(2, discs) - 1;
 
-            assertEquals(expectedMoveCount, moves.size(),
-                () -> String.format("Mathematical formula 2^%d - 1 = %d should match actual move count",
-                    discs, expectedMoveCount));
+            assertThat(moves)
+                .as("Mathematical formula 2^%d - 1 = %d should match actual move count",
+                    discs, expectedMoveCount)
+                .hasSize(expectedMoveCount);
         }
 
         static Stream<Arguments> discCountTestCases() {
@@ -150,8 +151,12 @@ class Exercise2Test {
             Exercise2.Move move2 = new Exercise2.Move("a", "b");
             Exercise2.Move move3 = new Exercise2.Move("b", "a");
 
-            assertEquals(move1, move2, "Moves with same from and to should be equal");
-            assertNotEquals(move1, move3, "Moves with different from/to should not be equal");
+            assertThat(move1)
+                .as("Moves with same from and to should be equal")
+                .isEqualTo(move2);
+            assertThat(move1)
+                .as("Moves with different from/to should not be equal")
+                .isNotEqualTo(move3);
         }
 
         @Test
@@ -161,8 +166,9 @@ class Exercise2Test {
             Exercise2.Move move2 = new Exercise2.Move("a", "b");
             Exercise2.Move move3 = new Exercise2.Move("b", "a");
 
-            assertEquals(move1.hashCode(), move2.hashCode(),
-                "Equal moves should have equal hash codes");
+            assertThat(move1.hashCode())
+                .as("Equal moves should have equal hash codes")
+                .isEqualTo(move2.hashCode());
 
             // Note: Different objects may have same hash code, but we expect them to be different
             // This is not a strict requirement but helps with hash table performance
@@ -173,15 +179,21 @@ class Exercise2Test {
         void shouldHandleNullValuesInEquality() {
             Exercise2.Move move = new Exercise2.Move("a", "b");
 
-            assertNotEquals(move, null, "Move should not equal null");
-            assertNotEquals(move, "not a move", "Move should not equal objects of different type");
+            assertThat(move)
+                .as("Move should not equal null")
+                .isNotEqualTo(null);
+            assertThat(move)
+                .as("Move should not equal objects of different type")
+                .isNotEqualTo("not a move");
         }
 
         @Test
         @DisplayName("Should implement reflexive equality")
         void shouldImplementReflexiveEquality() {
             Exercise2.Move move = new Exercise2.Move("a", "b");
-            assertEquals(move, move, "Move should equal itself");
+            assertThat(move)
+                .as("Move should equal itself")
+                .isEqualTo(move);
         }
 
         @Test
@@ -190,11 +202,12 @@ class Exercise2Test {
             Exercise2.Move move = new Exercise2.Move("source", "destination");
             String stringRepresentation = move.toString();
 
-            assertNotNull(stringRepresentation);
-            assertTrue(stringRepresentation.contains("source"),
-                "String representation should contain source peg");
-            assertTrue(stringRepresentation.contains("destination"),
-                "String representation should contain destination peg");
+            assertThat(stringRepresentation)
+                .isNotNull()
+                .as("String representation should contain source peg")
+                .contains("source")
+                .as("String representation should contain destination peg")
+                .contains("destination");
         }
     }
 
@@ -208,21 +221,25 @@ class Exercise2Test {
             // Depending on implementation, this might throw an exception or return empty list
             // For now, we expect it to return an empty list based on current implementation
             List<Exercise2.Move> moves = exercise.hanoi(-1, "a", "b", "c");
-            assertEquals(0, moves.size(), "Negative disc count should return empty list");
+            assertThat(moves)
+                .as("Negative disc count should return empty list")
+                .isEmpty();
         }
 
         @Test
         @DisplayName("Should work with single character peg names")
         void shouldWorkWithSingleCharacterPegNames() {
             List<Exercise2.Move> moves = exercise.hanoi(2, "x", "y", "z");
-            assertEquals(3, moves.size());
+            assertThat(moves).hasSize(3);
 
             // Verify all moves use the correct peg names
             moves.forEach(move -> {
-                assertTrue(List.of("x", "y", "z").contains(move.getFrom()),
-                    "From peg should be one of the provided pegs");
-                assertTrue(List.of("x", "y", "z").contains(move.getTo()),
-                    "To peg should be one of the provided pegs");
+                assertThat(move.getFrom())
+                    .as("From peg should be one of the provided pegs")
+                    .isIn("x", "y", "z");
+                assertThat(move.getTo())
+                    .as("To peg should be one of the provided pegs")
+                    .isIn("x", "y", "z");
             });
         }
     }

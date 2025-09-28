@@ -12,7 +12,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.*;
 
 /**
  * Test class for Exercise 1 - Credit Card Validation
@@ -48,14 +48,14 @@ class Exercise1Test {
         })
         void shouldConvertPositiveNumbersToDigits(long input, String expected) {
             List<Integer> expectedDigits = parseExpectedDigits(expected);
-            assertEquals(expectedDigits, exercise.toDigits(input));
+            assertThat(exercise.toDigits(input)).isEqualTo(expectedDigits);
         }
 
         @ParameterizedTest
         @DisplayName("Should return empty list for negative numbers")
         @ValueSource(longs = {-17, -1, -999})
         void shouldReturnEmptyListForNegativeNumbers(long input) {
-            assertEquals(List.of(), exercise.toDigits(input));
+            assertThat(exercise.toDigits(input)).isEmpty();
         }
 
         @ParameterizedTest
@@ -68,14 +68,14 @@ class Exercise1Test {
         })
         void shouldConvertPositiveNumbersToReversedDigits(long input, String expected) {
             List<Integer> expectedDigits = parseExpectedDigits(expected);
-            assertEquals(expectedDigits, exercise.toDigitsRev(input));
+            assertThat(exercise.toDigitsRev(input)).isEqualTo(expectedDigits);
         }
 
         @ParameterizedTest
         @DisplayName("Should return empty list for negative numbers (reversed)")
         @ValueSource(longs = {-17, -1, -999})
         void shouldReturnEmptyListForNegativeNumbersReversed(long input) {
-            assertEquals(List.of(), exercise.toDigitsRev(input));
+            assertThat(exercise.toDigitsRev(input)).isEmpty();
         }
     }
 
@@ -87,7 +87,7 @@ class Exercise1Test {
         @DisplayName("Should double every other element correctly")
         @MethodSource("doubleEveryOtherTestCases")
         void shouldDoubleEveryOtherElement(List<Integer> input, List<Integer> expected) {
-            assertEquals(expected, exercise.doubleEveryOther(input));
+            assertThat(exercise.doubleEveryOther(input)).isEqualTo(expected);
         }
 
         static Stream<Arguments> doubleEveryOtherTestCases() {
@@ -109,7 +109,7 @@ class Exercise1Test {
         @DisplayName("Should sum all digits correctly")
         @MethodSource("sumDigitsTestCases")
         void shouldSumAllDigitsCorrectly(List<Integer> input, int expected) {
-            assertEquals(expected, exercise.sumDigits(input));
+            assertThat(exercise.sumDigits(input)).isEqualTo(expected);
         }
 
         static Stream<Arguments> sumDigitsTestCases() {
@@ -134,24 +134,26 @@ class Exercise1Test {
         @DisplayName("Should validate valid credit card numbers")
         @ValueSource(longs = {4012888888881881L, 4111111111111111L})
         void shouldValidateValidCreditCardNumbers(long cardNumber) {
-            assertTrue(exercise.validate(cardNumber),
-                () -> "Credit card number " + cardNumber + " should be valid");
+            assertThat(exercise.validate(cardNumber))
+                .as("Credit card number %d should be valid", cardNumber)
+                .isTrue();
         }
 
         @ParameterizedTest
         @DisplayName("Should reject invalid credit card numbers")
         @ValueSource(longs = {4012888888881882L, 1234567890123456L})
         void shouldRejectInvalidCreditCardNumbers(long cardNumber) {
-            assertFalse(exercise.validate(cardNumber),
-                () -> "Credit card number " + cardNumber + " should be invalid");
+            assertThat(exercise.validate(cardNumber))
+                .as("Credit card number %d should be invalid", cardNumber)
+                .isFalse();
         }
 
         @Test
         @DisplayName("Should handle edge cases for validation")
         void shouldHandleEdgeCasesForValidation() {
             // Test with some additional invalid credit card numbers
-            assertFalse(exercise.validate(1111111111111112L));
-            assertFalse(exercise.validate(5555555555555556L));
+            assertThat(exercise.validate(1111111111111112L)).isFalse();
+            assertThat(exercise.validate(5555555555555556L)).isFalse();
         }
     }
 
