@@ -46,9 +46,12 @@ class Exercise1Test {
     class DieValueTests {
 
         @ParameterizedTest
-        @DisplayName("Should create valid die values")
+        @DisplayName("Should create valid die values for all valid inputs")
         @ValueSource(ints = {1, 2, 3, 4, 5, 6})
-        void shouldCreateValidDieValues(int value) {
+        void should_CreateValidDieValue_When_GivenValidInput(int value) {
+            // Given
+            // Valid die value provided via @ValueSource
+
             // When
             var dieValue = of(value);
 
@@ -57,9 +60,12 @@ class Exercise1Test {
         }
 
         @ParameterizedTest
-        @DisplayName("Should reject invalid die values")
+        @DisplayName("Should reject invalid die values with appropriate error message")
         @ValueSource(ints = {0, 7, -1, 10})
-        void shouldRejectInvalidDieValues(int value) {
+        void should_ThrowIllegalArgumentException_When_GivenInvalidDieValue(int value) {
+            // Given
+            // Invalid die value provided via @ValueSource
+
             // When & Then
             assertThatThrownBy(() -> of(value))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -67,41 +73,53 @@ class Exercise1Test {
         }
 
         @Test
-        @DisplayName("Should implement equals and hashCode correctly")
-        void shouldImplementEqualsAndHashCodeCorrectly() {
+        @DisplayName("Should implement equals and hashCode contract correctly")
+        void should_ImplementEqualsAndHashCodeContract_When_ComparingDieValues() {
             // Given
             var die1 = of(3);
             var die2 = of(3);
             var die3 = of(4);
 
+            // When
+            // Comparison operations are performed
+
             // Then
-            assertThat(die1).isEqualTo(die2);
-            assertThat(die1).isNotEqualTo(die3);
-            assertThat(die1.hashCode()).isEqualTo(die2.hashCode());
+            assertThat(die1)
+                .isEqualTo(die2)
+                .isNotEqualTo(die3)
+                .hasSameHashCodeAs(die2);
         }
 
         @Test
-        @DisplayName("Should implement Comparable correctly")
-        void shouldImplementComparableCorrectly() {
+        @DisplayName("Should implement Comparable interface correctly for ordering")
+        void should_ImplementComparableInterface_When_ComparingDieValues() {
             // Given
-            var die1 = of(2);
-            var die2 = of(5);
-            var die3 = of(2);
+            var lowerDie = of(2);
+            var higherDie = of(5);
+            var equalDie = of(2);
+
+            // When
+            int lowerToHigherComparison = lowerDie.compareTo(higherDie);
+            int higherToLowerComparison = higherDie.compareTo(lowerDie);
+            int equalComparison = lowerDie.compareTo(equalDie);
 
             // Then
-            assertThat(die1.compareTo(die2)).isLessThan(0);
-            assertThat(die2.compareTo(die1)).isGreaterThan(0);
-            assertThat(die1.compareTo(die3)).isEqualTo(0);
+            assertThat(lowerToHigherComparison).isNegative();
+            assertThat(higherToLowerComparison).isPositive();
+            assertThat(equalComparison).isZero();
         }
 
         @Test
-        @DisplayName("Should have proper toString representation")
-        void shouldHaveProperToStringRepresentation() {
+        @DisplayName("Should have proper toString representation for debugging")
+        void should_ReturnFormattedString_When_ToStringIsCalled() {
             // Given
             var die = of(4);
 
+            // When
+            String stringRepresentation = die.toString();
+
             // Then
-            assertThat(die.toString()).isEqualTo("DieValue{4}");
+            assertThat(stringRepresentation).isEqualTo("DieValue{4}");
         }
     }
 
@@ -110,36 +128,43 @@ class Exercise1Test {
     class DieRollingTests {
 
         @Test
-        @DisplayName("Should roll die values within valid range")
-        void shouldRollDieValuesWithinValidRange() {
+        @DisplayName("Should roll die values within valid range for multiple rolls")
+        void should_RollValuesWithinValidRange_When_RollingDieMultipleTimes() {
+            // Given
+            int numberOfRolls = 100;
+
             // When
-            List<Exercise1.DieValue> rolls = IntStream.range(0, 100)
+            List<Exercise1.DieValue> rolls = IntStream.range(0, numberOfRolls)
                 .mapToObj(i -> exercise.rollDie(random))
                 .toList();
 
             // Then
-            assertThat(rolls).allSatisfy(die -> {
-                assertThat(die.getValue()).isBetween(1, 6);
-            });
+            assertThat(rolls)
+                .hasSize(numberOfRolls)
+                .allSatisfy(die -> assertThat(die.getValue()).isBetween(1, 6));
         }
 
         @Test
-        @DisplayName("Should produce different values with sufficient rolls")
-        void shouldProduceDifferentValuesWithSufficientRolls() {
+        @DisplayName("Should produce different values with sufficient rolls demonstrating randomness")
+        void should_ProduceDifferentValues_When_RollingDieManyTimes() {
+            // Given
+            int numberOfRolls = 1000;
+            int minimumExpectedUniqueValues = 5;
+
             // When
-            List<Integer> rolls = IntStream.range(0, 1000)
+            List<Integer> uniqueRolls = IntStream.range(0, numberOfRolls)
                 .mapToObj(i -> exercise.rollDie(random))
                 .map(Exercise1.DieValue::getValue)
                 .distinct()
                 .toList();
 
             // Then
-            assertThat(rolls).hasSizeGreaterThanOrEqualTo(5); // Should get most values
+            assertThat(uniqueRolls).hasSizeGreaterThanOrEqualTo(minimumExpectedUniqueValues);
         }
 
         @Test
-        @DisplayName("Should roll multiple dice")
-        void shouldRollMultipleDice() {
+        @DisplayName("Should roll multiple dice with correct count and valid values")
+        void should_RollMultipleDiceWithValidValues_When_GivenNumberOfDice() {
             // Given
             int numberOfDice = 3;
 
@@ -147,26 +172,31 @@ class Exercise1Test {
             List<Exercise1.DieValue> rolls = exercise.rollDice(numberOfDice, random);
 
             // Then
-            assertThat(rolls).hasSize(numberOfDice);
-            assertThat(rolls).allSatisfy(die -> {
-                assertThat(die.getValue()).isBetween(1, 6);
-            });
+            assertThat(rolls)
+                .hasSize(numberOfDice)
+                .allSatisfy(die -> assertThat(die.getValue()).isBetween(1, 6));
         }
 
         @Test
-        @DisplayName("Should handle rolling zero dice")
-        void shouldHandleRollingZeroDice() {
+        @DisplayName("Should handle rolling zero dice returning empty list")
+        void should_ReturnEmptyList_When_RollingZeroDice() {
+            // Given
+            int numberOfDice = 0;
+
             // When
-            List<Exercise1.DieValue> rolls = exercise.rollDice(0, random);
+            List<Exercise1.DieValue> rolls = exercise.rollDice(numberOfDice, random);
 
             // Then
             assertThat(rolls).isEmpty();
         }
 
         @ParameterizedTest
-        @DisplayName("Should reject negative number of dice")
+        @DisplayName("Should reject negative number of dice with appropriate error")
         @ValueSource(ints = {-1, -5, -10})
-        void shouldRejectNegativeNumberOfDice(int numberOfDice) {
+        void should_ThrowIllegalArgumentException_When_GivenNegativeNumberOfDice(int numberOfDice) {
+            // Given
+            // Negative number of dice provided via @ValueSource
+
             // When & Then
             assertThatThrownBy(() -> exercise.rollDice(numberOfDice, random))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -179,10 +209,10 @@ class Exercise1Test {
     class BattleMechanicsTests {
 
         @Test
-        @DisplayName("Should sort dice in descending order")
-        void shouldSortDiceInDescendingOrder() {
+        @DisplayName("Should sort dice in descending order for battle comparison")
+        void should_SortDiceInDescendingOrder_When_GivenUnsortedDice() {
             // Given
-            List<Exercise1.DieValue> dice = List.of(
+            List<Exercise1.DieValue> unsortedDice = List.of(
                 of(2),
                 of(6),
                 of(1),
@@ -190,10 +220,10 @@ class Exercise1Test {
             );
 
             // When
-            List<Exercise1.DieValue> sorted = exercise.sortDiceDescending(dice);
+            List<Exercise1.DieValue> sortedDice = exercise.sortDiceDescending(unsortedDice);
 
             // Then
-            assertThat(sorted).containsExactly(
+            assertThat(sortedDice).containsExactly(
                 of(6),
                 of(4),
                 of(2),
@@ -202,31 +232,34 @@ class Exercise1Test {
         }
 
         @Test
-        @DisplayName("Should handle empty dice list")
-        void shouldHandleEmptyDiceList() {
+        @DisplayName("Should handle empty dice list gracefully")
+        void should_ReturnEmptyList_When_GivenEmptyDiceList() {
             // Given
-            List<Exercise1.DieValue> dice = List.of();
+            List<Exercise1.DieValue> emptyDiceList = List.of();
 
             // When
-            List<Exercise1.DieValue> sorted = exercise.sortDiceDescending(dice);
+            List<Exercise1.DieValue> sortedDice = exercise.sortDiceDescending(emptyDiceList);
 
             // Then
-            assertThat(sorted).isEmpty();
+            assertThat(sortedDice).isEmpty();
         }
 
         @ParameterizedTest
-        @DisplayName("Should determine battle outcome correctly")
+        @DisplayName("Should determine battle outcome correctly according to Risk rules")
         @MethodSource("battleOutcomeTestCases")
-        void shouldDetermineBattleOutcomeCorrectly(
+        void should_DetermineBattleOutcome_When_ComparingAttackerAndDefenderDice(
             Exercise1.DieValue attackerDie,
             Exercise1.DieValue defenderDie,
             Exercise1.BattleResult expected
         ) {
+            // Given
+            // Dice values provided via @MethodSource
+
             // When
-            Exercise1.BattleResult result = exercise.compareDice(attackerDie, defenderDie);
+            Exercise1.BattleResult actualResult = exercise.compareDice(attackerDie, defenderDie);
 
             // Then
-            assertThat(result).isEqualTo(expected);
+            assertThat(actualResult).isEqualTo(expected);
         }
 
         static Stream<Arguments> battleOutcomeTestCases() {
@@ -244,8 +277,8 @@ class Exercise1Test {
         }
 
         @Test
-        @DisplayName("Should calculate battle losses for single combat")
-        void shouldCalculateBattleLossesForSingleCombat() {
+        @DisplayName("Should calculate battle losses correctly for single die combat")
+        void should_CalculateLossesCorrectly_When_ResolvingSingleDieBattle() {
             // Given
             List<Exercise1.DieValue> attackerRolls = List.of(of(5));
             List<Exercise1.DieValue> defenderRolls = List.of(of(3));
@@ -254,13 +287,13 @@ class Exercise1Test {
             Exercise1.BattleOutcome outcome = exercise.resolveBattle(attackerRolls, defenderRolls);
 
             // Then
-            assertThat(outcome.getAttackerLosses()).isEqualTo(0);
+            assertThat(outcome.getAttackerLosses()).isZero();
             assertThat(outcome.getDefenderLosses()).isEqualTo(1);
         }
 
         @Test
-        @DisplayName("Should calculate battle losses for multiple dice")
-        void shouldCalculateBattleLossesForMultipleDice() {
+        @DisplayName("Should calculate battle losses correctly for multiple dice combat")
+        void should_CalculateLossesCorrectly_When_ResolvingMultipleDiceBattle() {
             // Given
             List<Exercise1.DieValue> attackerRolls = List.of(
                 of(6), of(3)
@@ -280,8 +313,8 @@ class Exercise1Test {
         }
 
         @Test
-        @DisplayName("Should handle unequal number of dice")
-        void shouldHandleUnequalNumberOfDice() {
+        @DisplayName("Should handle unequal number of dice by comparing only matching pairs")
+        void should_CompareOnlyMatchingPairs_When_GivenUnequalNumberOfDice() {
             // Given
             List<Exercise1.DieValue> attackerRolls = List.of(
                 of(6), of(4), of(2)
@@ -295,7 +328,7 @@ class Exercise1Test {
 
             // Then
             // Only compare highest dice: 6 vs 5, attacker wins
-            assertThat(outcome.getAttackerLosses()).isEqualTo(0);
+            assertThat(outcome.getAttackerLosses()).isZero();
             assertThat(outcome.getDefenderLosses()).isEqualTo(1);
         }
     }

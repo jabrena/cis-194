@@ -41,9 +41,12 @@ class Exercise2Test {
     class ArmyManagementTests {
 
         @ParameterizedTest
-        @DisplayName("Should create valid armies")
+        @DisplayName("Should create valid armies for all positive sizes")
         @ValueSource(ints = {1, 5, 10, 100})
-        void shouldCreateValidArmies(int size) {
+        void should_CreateValidArmy_When_GivenPositiveSize(int size) {
+            // Given
+            // Positive army size provided via @ValueSource
+
             // When
             var army = of(size);
 
@@ -52,9 +55,12 @@ class Exercise2Test {
         }
 
         @ParameterizedTest
-        @DisplayName("Should reject invalid army sizes")
+        @DisplayName("Should reject negative army sizes with appropriate error")
         @ValueSource(ints = {-1, -10})
-        void shouldRejectInvalidArmySizes(int size) {
+        void should_ThrowIllegalArgumentException_When_GivenNegativeArmySize(int size) {
+            // Given
+            // Negative army size provided via @ValueSource
+
             // When & Then
             assertThatThrownBy(() -> of(size))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -62,50 +68,59 @@ class Exercise2Test {
         }
 
         @Test
-        @DisplayName("Should allow army size of 0 (eliminated army)")
-        void shouldAllowArmySizeOfZero() {
+        @DisplayName("Should allow army size of 0 representing eliminated army")
+        void should_AllowZeroSizeArmy_When_RepresentingEliminatedArmy() {
+            // Given
+            int eliminatedArmySize = 0;
+
             // When
-            var army = of(0);
+            var army = of(eliminatedArmySize);
 
             // Then
-            assertThat(army.getSize()).isEqualTo(0);
+            assertThat(army.getSize()).isZero();
         }
 
         @Test
-        @DisplayName("Should implement equals and hashCode correctly")
-        void shouldImplementEqualsAndHashCodeCorrectly() {
+        @DisplayName("Should implement equals and hashCode contract correctly")
+        void should_ImplementEqualsAndHashCodeContract_When_ComparingArmies() {
             // Given
             var army1 = of(5);
             var army2 = of(5);
             var army3 = of(3);
 
+            // When
+            // Comparison operations are performed
+
             // Then
-            assertThat(army1).isEqualTo(army2);
-            assertThat(army1).isNotEqualTo(army3);
-            assertThat(army1.hashCode()).isEqualTo(army2.hashCode());
+            assertThat(army1)
+                .isEqualTo(army2)
+                .isNotEqualTo(army3)
+                .hasSameHashCodeAs(army2);
         }
 
         @Test
-        @DisplayName("Should reduce army size after losses")
-        void shouldReduceArmySizeAfterLosses() {
+        @DisplayName("Should reduce army size correctly after applying losses")
+        void should_ReduceArmySize_When_ApplyingLosses() {
             // Given
-            var army = of(10);
+            var originalArmy = of(10);
+            int losses = 3;
+            int expectedRemainingSize = 7;
 
             // When
-            var reducedArmy = army.withLosses(3);
+            var reducedArmy = originalArmy.withLosses(losses);
 
             // Then
-            assertThat(reducedArmy.getSize()).isEqualTo(7);
+            assertThat(reducedArmy.getSize()).isEqualTo(expectedRemainingSize);
         }
 
         @ParameterizedTest
-        @DisplayName("Should reject excessive losses")
+        @DisplayName("Should reject excessive losses that exceed army size")
         @CsvSource({
             "5, 6",
             "3, 4",
             "1, 2"
         })
-        void shouldRejectExcessiveLosses(int armySize, int losses) {
+        void should_ThrowIllegalArgumentException_When_LossesExceedArmySize(int armySize, int losses) {
             // Given
             var army = of(armySize);
 
@@ -116,16 +131,17 @@ class Exercise2Test {
         }
 
         @Test
-        @DisplayName("Should handle zero losses")
-        void shouldHandleZeroLosses() {
+        @DisplayName("Should handle zero losses returning same army")
+        void should_ReturnSameArmy_When_ApplyingZeroLosses() {
             // Given
-            var army = of(5);
+            var originalArmy = of(5);
+            int zeroLosses = 0;
 
             // When
-            var sameArmy = army.withLosses(0);
+            var resultArmy = originalArmy.withLosses(zeroLosses);
 
             // Then
-            assertThat(sameArmy).isEqualTo(army);
+            assertThat(resultArmy).isEqualTo(originalArmy);
         }
     }
 
@@ -134,7 +150,7 @@ class Exercise2Test {
     class BattleConfigurationTests {
 
         @ParameterizedTest
-        @DisplayName("Should determine correct number of attacker dice")
+        @DisplayName("Should determine correct number of attacker dice according to Risk rules")
         @CsvSource({
             "1, 0",  // 1 army can't attack (needs 1 to stay)
             "2, 1",  // 2 armies can roll 1 die
@@ -142,34 +158,34 @@ class Exercise2Test {
             "4, 3",  // 4+ armies can roll 3 dice (max)
             "10, 3"
         })
-        void shouldDetermineCorrectNumberOfAttackerDice(int armySize, int expectedDice) {
+        void should_DetermineAttackerDiceCount_When_GivenArmySize(int armySize, int expectedDice) {
             // Given
             var army = of(armySize);
 
             // When
-            int dice = exercise.getAttackerDice(army);
+            int actualDiceCount = exercise.getAttackerDice(army);
 
             // Then
-            assertThat(dice).isEqualTo(expectedDice);
+            assertThat(actualDiceCount).isEqualTo(expectedDice);
         }
 
         @ParameterizedTest
-        @DisplayName("Should determine correct number of defender dice")
+        @DisplayName("Should determine correct number of defender dice according to Risk rules")
         @CsvSource({
             "1, 1",  // 1 army rolls 1 die
             "2, 2",  // 2+ armies can roll 2 dice (max)
             "5, 2",
             "10, 2"
         })
-        void shouldDetermineCorrectNumberOfDefenderDice(int armySize, int expectedDice) {
+        void should_DetermineDefenderDiceCount_When_GivenArmySize(int armySize, int expectedDice) {
             // Given
             var army = of(armySize);
 
             // When
-            int dice = exercise.getDefenderDice(army);
+            int actualDiceCount = exercise.getDefenderDice(army);
 
             // Then
-            assertThat(dice).isEqualTo(expectedDice);
+            assertThat(actualDiceCount).isEqualTo(expectedDice);
         }
 
         @Test
