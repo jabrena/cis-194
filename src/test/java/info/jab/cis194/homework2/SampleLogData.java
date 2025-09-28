@@ -6,7 +6,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Utility class for loading and working with the official sample.log data from CIS-194 Homework 2.
@@ -37,7 +36,7 @@ class SampleLogData {
                 try (BufferedReader reader = new BufferedReader(
                         new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
                     sampleLogContent = reader.lines()
-                            .collect(Collectors.joining(System.lineSeparator()));
+                            .reduce("", (acc, line) -> acc.isEmpty() ? line : acc + System.lineSeparator() + line);
                 }
             } catch (IOException e) {
                 throw new RuntimeException("Failed to load sample.log from test resources", e);
