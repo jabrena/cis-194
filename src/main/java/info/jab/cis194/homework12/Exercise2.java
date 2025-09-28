@@ -120,7 +120,7 @@ public class Exercise2 {
             if (this == obj) return true;
             if (obj == null || getClass() != obj.getClass()) return false;
             BattleResult that = (BattleResult) obj;
-            return Objects.equals(attackerArmy, that.attackerArmy) && 
+            return Objects.equals(attackerArmy, that.attackerArmy) &&
                    Objects.equals(defenderArmy, that.defenderArmy);
         }
 
@@ -143,7 +143,7 @@ public class Exercise2 {
      */
     public int getAttackerDice(Army army) {
         Objects.requireNonNull(army, "Army cannot be null");
-        
+
         int availableForAttack = army.getSize() - 1; // Must leave 1 army behind
         return Math.max(0, Math.min(3, availableForAttack));
     }
@@ -156,7 +156,7 @@ public class Exercise2 {
      */
     public int getDefenderDice(Army army) {
         Objects.requireNonNull(army, "Army cannot be null");
-        
+
         return Math.min(2, army.getSize());
     }
 
@@ -253,9 +253,9 @@ public class Exercise2 {
      * @throws IllegalArgumentException if simulations is not positive
      */
     public double estimateAttackerWinProbability(
-        Army attackerArmy, 
-        Army defenderArmy, 
-        int simulations, 
+        Army attackerArmy,
+        Army defenderArmy,
+        int simulations,
         Random random
     ) {
         if (simulations <= 0) {

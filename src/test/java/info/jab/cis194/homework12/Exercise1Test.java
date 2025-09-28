@@ -13,6 +13,9 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import static info.jab.cis194.homework12.Exercise1.DieValue.of;
+import static info.jab.cis194.homework12.ATTACKER_WINS;
+import static info.jab.cis194.homework12.Exercise1.BattleResult.DEFENDER_WINS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -47,7 +50,7 @@ class Exercise1Test {
         @ValueSource(ints = {1, 2, 3, 4, 5, 6})
         void shouldCreateValidDieValues(int value) {
             // When
-            var dieValue = Exercise1.DieValue.of(value);
+            var dieValue = of(value);
 
             // Then
             assertThat(dieValue.getValue()).isEqualTo(value);
@@ -58,7 +61,7 @@ class Exercise1Test {
         @ValueSource(ints = {0, 7, -1, 10})
         void shouldRejectInvalidDieValues(int value) {
             // When & Then
-            assertThatThrownBy(() -> Exercise1.DieValue.of(value))
+            assertThatThrownBy(() -> of(value))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Die value must be between 1 and 6");
         }
@@ -67,9 +70,9 @@ class Exercise1Test {
         @DisplayName("Should implement equals and hashCode correctly")
         void shouldImplementEqualsAndHashCodeCorrectly() {
             // Given
-            var die1 = Exercise1.DieValue.of(3);
-            var die2 = Exercise1.DieValue.of(3);
-            var die3 = Exercise1.DieValue.of(4);
+            var die1 = of(3);
+            var die2 = of(3);
+            var die3 = of(4);
 
             // Then
             assertThat(die1).isEqualTo(die2);
@@ -81,9 +84,9 @@ class Exercise1Test {
         @DisplayName("Should implement Comparable correctly")
         void shouldImplementComparableCorrectly() {
             // Given
-            var die1 = Exercise1.DieValue.of(2);
-            var die2 = Exercise1.DieValue.of(5);
-            var die3 = Exercise1.DieValue.of(2);
+            var die1 = of(2);
+            var die2 = of(5);
+            var die3 = of(2);
 
             // Then
             assertThat(die1.compareTo(die2)).isLessThan(0);
@@ -95,7 +98,7 @@ class Exercise1Test {
         @DisplayName("Should have proper toString representation")
         void shouldHaveProperToStringRepresentation() {
             // Given
-            var die = Exercise1.DieValue.of(4);
+            var die = of(4);
 
             // Then
             assertThat(die.toString()).isEqualTo("DieValue{4}");
@@ -180,10 +183,10 @@ class Exercise1Test {
         void shouldSortDiceInDescendingOrder() {
             // Given
             List<Exercise1.DieValue> dice = List.of(
-                Exercise1.DieValue.of(2),
-                Exercise1.DieValue.of(6),
-                Exercise1.DieValue.of(1),
-                Exercise1.DieValue.of(4)
+                of(2),
+                of(6),
+                of(1),
+                of(4)
             );
 
             // When
@@ -191,10 +194,10 @@ class Exercise1Test {
 
             // Then
             assertThat(sorted).containsExactly(
-                Exercise1.DieValue.of(6),
-                Exercise1.DieValue.of(4),
-                Exercise1.DieValue.of(2),
-                Exercise1.DieValue.of(1)
+                of(6),
+                of(4),
+                of(2),
+                of(1)
             );
         }
 
@@ -229,14 +232,14 @@ class Exercise1Test {
         static Stream<Arguments> battleOutcomeTestCases() {
             return Stream.of(
                 // Attacker wins (higher roll)
-                Arguments.of(Exercise1.DieValue.of(6), Exercise1.DieValue.of(5), Exercise1.BattleResult.ATTACKER_WINS),
-                Arguments.of(Exercise1.DieValue.of(4), Exercise1.DieValue.of(2), Exercise1.BattleResult.ATTACKER_WINS),
-                Arguments.of(Exercise1.DieValue.of(2), Exercise1.DieValue.of(1), Exercise1.BattleResult.ATTACKER_WINS),
+                Arguments.of(of(6), of(5), ATTACKER_WINS),
+                Arguments.of(of(4), of(2), ATTACKER_WINS),
+                Arguments.of(of(2), of(1), ATTACKER_WINS),
 
                 // Defender wins (equal or higher roll)
-                Arguments.of(Exercise1.DieValue.of(3), Exercise1.DieValue.of(3), Exercise1.BattleResult.DEFENDER_WINS),
-                Arguments.of(Exercise1.DieValue.of(2), Exercise1.DieValue.of(4), Exercise1.BattleResult.DEFENDER_WINS),
-                Arguments.of(Exercise1.DieValue.of(1), Exercise1.DieValue.of(6), Exercise1.BattleResult.DEFENDER_WINS)
+                Arguments.of(of(3), of(3), Exercise1.BattleResult.DEFENDER_WINS),
+                Arguments.of(of(2), of(4), Exercise1.BattleResult.DEFENDER_WINS),
+                Arguments.of(of(1), of(6), Exercise1.BattleResult.DEFENDER_WINS)
             );
         }
 
@@ -244,8 +247,8 @@ class Exercise1Test {
         @DisplayName("Should calculate battle losses for single combat")
         void shouldCalculateBattleLossesForSingleCombat() {
             // Given
-            List<Exercise1.DieValue> attackerRolls = List.of(Exercise1.DieValue.of(5));
-            List<Exercise1.DieValue> defenderRolls = List.of(Exercise1.DieValue.of(3));
+            List<Exercise1.DieValue> attackerRolls = List.of(of(5));
+            List<Exercise1.DieValue> defenderRolls = List.of(of(3));
 
             // When
             Exercise1.BattleOutcome outcome = exercise.resolveBattle(attackerRolls, defenderRolls);
@@ -260,10 +263,10 @@ class Exercise1Test {
         void shouldCalculateBattleLossesForMultipleDice() {
             // Given
             List<Exercise1.DieValue> attackerRolls = List.of(
-                Exercise1.DieValue.of(6), Exercise1.DieValue.of(3)
+                of(6), of(3)
             );
             List<Exercise1.DieValue> defenderRolls = List.of(
-                Exercise1.DieValue.of(5), Exercise1.DieValue.of(4)
+                of(5), of(4)
             );
 
             // When
@@ -281,10 +284,10 @@ class Exercise1Test {
         void shouldHandleUnequalNumberOfDice() {
             // Given
             List<Exercise1.DieValue> attackerRolls = List.of(
-                Exercise1.DieValue.of(6), Exercise1.DieValue.of(4), Exercise1.DieValue.of(2)
+                of(6), of(4), of(2)
             );
             List<Exercise1.DieValue> defenderRolls = List.of(
-                Exercise1.DieValue.of(5)
+                of(5)
             );
 
             // When
