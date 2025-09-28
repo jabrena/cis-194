@@ -41,47 +41,52 @@ class Exercise4Test {
         @Test
         @DisplayName("Should return empty list for empty tree")
         void shouldReturnEmptyListForEmptyTree() {
+            // Given
             MessageTree emptyTree = MessageTree.leaf();
 
+            // When
             List<LogMessage.ValidMessage> result = exercise.inOrder(emptyTree);
 
+            // Then
             assertThat(result).isEmpty();
         }
 
         @Test
         @DisplayName("Should return single message for single node tree")
         void shouldReturnSingleMessageForSingleNode() {
-            LogMessage.ValidMessage msg = new LogMessage.ValidMessage(MessageType.INFO, 10, "test");
-            MessageTree tree = MessageTree.node(MessageTree.leaf(), msg, MessageTree.leaf());
+            // Given
+            LogMessage.ValidMessage testMessage = new LogMessage.ValidMessage(MessageType.INFO, 10, "test");
+            MessageTree singleNodeTree = MessageTree.node(MessageTree.leaf(), testMessage, MessageTree.leaf());
 
-            List<LogMessage.ValidMessage> result = exercise.inOrder(tree);
+            // When
+            List<LogMessage.ValidMessage> result = exercise.inOrder(singleNodeTree);
 
+            // Then
             assertThat(result).hasSize(1);
-            assertThat(result.get(0)).isEqualTo(msg);
+            assertThat(result.get(0)).isEqualTo(testMessage);
         }
 
         @Test
         @DisplayName("Should return messages in timestamp order")
         void shouldReturnMessagesInTimestampOrder() {
-            // Build tree manually to ensure specific structure
-            LogMessage.ValidMessage msg1 = new LogMessage.ValidMessage(MessageType.INFO, 5, "first");
-            LogMessage.ValidMessage msg2 = new LogMessage.ValidMessage(MessageType.WARNING, 10, "second");
-            LogMessage.ValidMessage msg3 = new LogMessage.ValidMessage(MessageType.error(1), 15, "third");
-
-            MessageTree tree = MessageTree.node(
-                MessageTree.node(MessageTree.leaf(), msg1, MessageTree.leaf()),
-                msg2,
-                MessageTree.node(MessageTree.leaf(), msg3, MessageTree.leaf())
+            // Given - Build tree manually to ensure specific structure
+            LogMessage.ValidMessage firstMessage = new LogMessage.ValidMessage(MessageType.INFO, 5, "first");
+            LogMessage.ValidMessage secondMessage = new LogMessage.ValidMessage(MessageType.WARNING, 10, "second");
+            LogMessage.ValidMessage thirdMessage = new LogMessage.ValidMessage(MessageType.error(1), 15, "third");
+            MessageTree testTree = MessageTree.node(
+                MessageTree.node(MessageTree.leaf(), firstMessage, MessageTree.leaf()),
+                secondMessage,
+                MessageTree.node(MessageTree.leaf(), thirdMessage, MessageTree.leaf())
             );
 
-            List<LogMessage.ValidMessage> result = exercise.inOrder(tree);
+            // When
+            List<LogMessage.ValidMessage> result = exercise.inOrder(testTree);
 
+            // Then
             assertThat(result).hasSize(3);
-            assertThat(result.get(0)).isEqualTo(msg1);
-            assertThat(result.get(1)).isEqualTo(msg2);
-            assertThat(result.get(2)).isEqualTo(msg3);
-
-            // Verify timestamps are in ascending order
+            assertThat(result.get(0)).isEqualTo(firstMessage);
+            assertThat(result.get(1)).isEqualTo(secondMessage);
+            assertThat(result.get(2)).isEqualTo(thirdMessage);
             assertThat(result.stream().mapToInt(LogMessage.ValidMessage::timestamp))
                 .isSorted();
         }
@@ -90,16 +95,17 @@ class Exercise4Test {
         @DisplayName("Should maintain sorted order for various tree structures")
         @MethodSource("inOrderTestCases")
         void shouldMaintainSortedOrderForVariousStructures(List<Integer> timestamps) {
-            // Build tree from messages using Exercise3
-            List<LogMessage> messages = timestamps.stream()
+            // Given
+            List<LogMessage> testMessages = timestamps.stream()
                 .map(ts -> new LogMessage.ValidMessage(MessageType.INFO, ts, "msg-" + ts))
                 .map(msg -> (LogMessage) msg)
                 .toList();
 
-            MessageTree tree = buildHelper.build(messages);
-
+            // When
+            MessageTree tree = buildHelper.build(testMessages);
             List<LogMessage.ValidMessage> result = exercise.inOrder(tree);
 
+            // Then
             assertThat(result).hasSize(timestamps.size());
 
             // Verify all messages are present and in sorted order
@@ -130,14 +136,17 @@ class Exercise4Test {
         @Test
         @DisplayName("Should verify tree is in sorted order")
         void shouldVerifyTreeIsInSortedOrder() {
-            List<LogMessage> messages = List.of(
+            // Given
+            List<LogMessage> testMessages = List.of(
                 new LogMessage.ValidMessage(MessageType.INFO, 10, "middle"),
                 new LogMessage.ValidMessage(MessageType.WARNING, 5, "left"),
                 new LogMessage.ValidMessage(MessageType.error(1), 15, "right")
             );
 
-            MessageTree tree = buildHelper.build(messages);
+            // When
+            MessageTree tree = buildHelper.build(testMessages);
 
+            // Then
             assertThat(exercise.isInOrderSorted(tree)).isTrue();
             assertThat(exercise.isInOrderSortedFunctional(tree)).isTrue();
         }
@@ -145,15 +154,19 @@ class Exercise4Test {
         @Test
         @DisplayName("Should count messages correctly")
         void shouldCountMessagesCorrectly() {
-            List<LogMessage> messages = List.of(
+            // Given
+            List<LogMessage> testMessages = List.of(
                 new LogMessage.ValidMessage(MessageType.INFO, 1, "msg1"),
                 new LogMessage.ValidMessage(MessageType.WARNING, 2, "msg2"),
                 new LogMessage.ValidMessage(MessageType.error(1), 3, "msg3")
             );
 
-            MessageTree tree = buildHelper.build(messages);
+            // When
+            MessageTree tree = buildHelper.build(testMessages);
+            int messageCount = exercise.countMessages(tree);
 
-            assertThat(exercise.countMessages(tree)).isEqualTo(3);
+            // Then
+            assertThat(messageCount).isEqualTo(3);
         }
 
         @Test

@@ -39,11 +39,14 @@ class Exercise2Test {
         @Test
         @DisplayName("Should insert single message into empty tree")
         void shouldInsertSingleMessageIntoEmptyTree() {
+            // Given
             LogMessage.ValidMessage msg = new LogMessage.ValidMessage(MessageType.INFO, 10, "test");
-            MessageTree tree = MessageTree.leaf();
+            MessageTree emptyTree = MessageTree.leaf();
 
-            MessageTree result = exercise.insert(msg, tree);
+            // When
+            MessageTree result = exercise.insert(msg, emptyTree);
 
+            // Then
             assertThat(result).isInstanceOf(MessageTree.Node.class);
             MessageTree.Node node = (MessageTree.Node) result;
             assertThat(node.message()).isEqualTo(msg);
@@ -55,51 +58,60 @@ class Exercise2Test {
         @Test
         @DisplayName("Should not insert Unknown messages")
         void shouldNotInsertUnknownMessages() {
-            LogMessage.Unknown unknown = new LogMessage.Unknown("invalid message");
-            MessageTree tree = MessageTree.leaf();
+            // Given
+            LogMessage.Unknown unknownMessage = new LogMessage.Unknown("invalid message");
+            MessageTree emptyTree = MessageTree.leaf();
 
-            MessageTree result = exercise.insert(unknown, tree);
+            // When
+            MessageTree result = exercise.insert(unknownMessage, emptyTree);
 
-            assertThat(result).isSameAs(tree);
+            // Then
+            assertThat(result).isSameAs(emptyTree);
             assertThat(result.isEmpty()).isTrue();
         }
 
         @Test
         @DisplayName("Should maintain BST property when inserting smaller timestamp")
         void shouldInsertSmallerTimestampToLeft() {
-            LogMessage.ValidMessage root = new LogMessage.ValidMessage(MessageType.INFO, 10, "root");
-            LogMessage.ValidMessage smaller = new LogMessage.ValidMessage(MessageType.WARNING, 5, "smaller");
+            // Given
+            LogMessage.ValidMessage rootMessage = new LogMessage.ValidMessage(MessageType.INFO, 10, "root");
+            LogMessage.ValidMessage smallerMessage = new LogMessage.ValidMessage(MessageType.WARNING, 5, "smaller");
+            MessageTree initialTree = MessageTree.node(MessageTree.leaf(), rootMessage, MessageTree.leaf());
 
-            MessageTree tree = MessageTree.node(MessageTree.leaf(), root, MessageTree.leaf());
-            MessageTree result = exercise.insert(smaller, tree);
+            // When
+            MessageTree result = exercise.insert(smallerMessage, initialTree);
 
+            // Then
             assertThat(result).isInstanceOf(MessageTree.Node.class);
             MessageTree.Node node = (MessageTree.Node) result;
-            assertThat(node.message()).isEqualTo(root);
+            assertThat(node.message()).isEqualTo(rootMessage);
             assertThat(node.left()).isInstanceOf(MessageTree.Node.class);
             assertThat(node.right()).isInstanceOf(MessageTree.Leaf.class);
 
             MessageTree.Node leftNode = (MessageTree.Node) node.left();
-            assertThat(leftNode.message()).isEqualTo(smaller);
+            assertThat(leftNode.message()).isEqualTo(smallerMessage);
         }
 
         @Test
         @DisplayName("Should maintain BST property when inserting larger timestamp")
         void shouldInsertLargerTimestampToRight() {
-            LogMessage.ValidMessage root = new LogMessage.ValidMessage(MessageType.INFO, 10, "root");
-            LogMessage.ValidMessage larger = new LogMessage.ValidMessage(MessageType.WARNING, 15, "larger");
+            // Given
+            LogMessage.ValidMessage rootMessage = new LogMessage.ValidMessage(MessageType.INFO, 10, "root");
+            LogMessage.ValidMessage largerMessage = new LogMessage.ValidMessage(MessageType.WARNING, 15, "larger");
+            MessageTree initialTree = MessageTree.node(MessageTree.leaf(), rootMessage, MessageTree.leaf());
 
-            MessageTree tree = MessageTree.node(MessageTree.leaf(), root, MessageTree.leaf());
-            MessageTree result = exercise.insert(larger, tree);
+            // When
+            MessageTree result = exercise.insert(largerMessage, initialTree);
 
+            // Then
             assertThat(result).isInstanceOf(MessageTree.Node.class);
             MessageTree.Node node = (MessageTree.Node) result;
-            assertThat(node.message()).isEqualTo(root);
+            assertThat(node.message()).isEqualTo(rootMessage);
             assertThat(node.left()).isInstanceOf(MessageTree.Leaf.class);
             assertThat(node.right()).isInstanceOf(MessageTree.Node.class);
 
             MessageTree.Node rightNode = (MessageTree.Node) node.right();
-            assertThat(rightNode.message()).isEqualTo(larger);
+            assertThat(rightNode.message()).isEqualTo(largerMessage);
         }
     }
 
@@ -110,7 +122,8 @@ class Exercise2Test {
         @Test
         @DisplayName("Should build balanced tree with multiple inserts")
         void shouldBuildTreeWithMultipleInserts() {
-            List<LogMessage.ValidMessage> messages = List.of(
+            // Given
+            List<LogMessage.ValidMessage> testMessages = List.of(
                 new LogMessage.ValidMessage(MessageType.INFO, 10, "root"),
                 new LogMessage.ValidMessage(MessageType.WARNING, 5, "left"),
                 new LogMessage.ValidMessage(MessageType.error(2), 15, "right"),
@@ -119,29 +132,34 @@ class Exercise2Test {
                 new LogMessage.ValidMessage(MessageType.INFO, 12, "right-left"),
                 new LogMessage.ValidMessage(MessageType.error(1), 18, "right-right")
             );
+            MessageTree initialTree = MessageTree.leaf();
 
-            MessageTree tree = MessageTree.leaf();
-            for (LogMessage.ValidMessage msg : messages) {
+            // When
+            MessageTree tree = initialTree;
+            for (LogMessage.ValidMessage msg : testMessages) {
                 tree = exercise.insert(msg, tree);
             }
 
+            // Then
             assertThat(tree.size()).isEqualTo(7);
             assertThat(tree.isEmpty()).isFalse();
-
-            // Verify BST property
             assertThat(isBSTOrdered(tree)).isTrue();
         }
 
         @Test
         @DisplayName("Should handle duplicate timestamps correctly")
         void shouldHandleDuplicateTimestamps() {
-            LogMessage.ValidMessage msg1 = new LogMessage.ValidMessage(MessageType.INFO, 10, "first");
-            LogMessage.ValidMessage msg2 = new LogMessage.ValidMessage(MessageType.WARNING, 10, "second");
+            // Given
+            LogMessage.ValidMessage firstMessage = new LogMessage.ValidMessage(MessageType.INFO, 10, "first");
+            LogMessage.ValidMessage secondMessage = new LogMessage.ValidMessage(MessageType.WARNING, 10, "second");
+            MessageTree emptyTree = MessageTree.leaf();
 
-            MessageTree tree = MessageTree.leaf();
-            tree = exercise.insert(msg1, tree);
-            tree = exercise.insert(msg2, tree);
+            // When
+            MessageTree tree = emptyTree;
+            tree = exercise.insert(firstMessage, tree);
+            tree = exercise.insert(secondMessage, tree);
 
+            // Then
             assertThat(tree.size()).isEqualTo(2);
             // Both messages should be in the tree (duplicate timestamps allowed)
         }
@@ -150,14 +168,19 @@ class Exercise2Test {
         @DisplayName("Should maintain BST property with various insertion orders")
         @MethodSource("insertionOrderTestCases")
         void shouldMaintainBSTPropertyWithVariousOrders(List<Integer> timestamps) {
-            MessageTree tree = MessageTree.leaf();
+            // Given
+            MessageTree initialTree = MessageTree.leaf();
+            List<LogMessage.ValidMessage> testMessages = timestamps.stream()
+                .map(timestamp -> new LogMessage.ValidMessage(MessageType.INFO, timestamp, "msg-" + timestamp))
+                .toList();
 
-            for (int timestamp : timestamps) {
-                LogMessage.ValidMessage msg = new LogMessage.ValidMessage(
-                    MessageType.INFO, timestamp, "msg-" + timestamp);
+            // When
+            MessageTree tree = initialTree;
+            for (LogMessage.ValidMessage msg : testMessages) {
                 tree = exercise.insert(msg, tree);
             }
 
+            // Then
             assertThat(tree.size()).isEqualTo(timestamps.size());
             assertThat(isBSTOrdered(tree)).isTrue();
         }

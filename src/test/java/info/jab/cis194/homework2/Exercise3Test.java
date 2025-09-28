@@ -39,10 +39,13 @@ class Exercise3Test {
         @Test
         @DisplayName("Should build empty tree from empty list")
         void shouldBuildEmptyTreeFromEmptyList() {
-            List<LogMessage> emptyMessages = List.of();
+            // Given
+            List<LogMessage> emptyMessageList = List.of();
 
-            MessageTree result = exercise.build(emptyMessages);
+            // When
+            MessageTree result = exercise.build(emptyMessageList);
 
+            // Then
             assertThat(result).isInstanceOf(MessageTree.Leaf.class);
             assertThat(result.isEmpty()).isTrue();
             assertThat(result.size()).isEqualTo(0);
@@ -51,21 +54,25 @@ class Exercise3Test {
         @Test
         @DisplayName("Should build single node tree from single valid message")
         void shouldBuildSingleNodeFromSingleMessage() {
-            LogMessage.ValidMessage msg = new LogMessage.ValidMessage(MessageType.INFO, 10, "test");
-            List<LogMessage> messages = List.of(msg);
+            // Given
+            LogMessage.ValidMessage testMessage = new LogMessage.ValidMessage(MessageType.INFO, 10, "test");
+            List<LogMessage> singleMessageList = List.of(testMessage);
 
-            MessageTree result = exercise.build(messages);
+            // When
+            MessageTree result = exercise.build(singleMessageList);
 
+            // Then
             assertThat(result).isInstanceOf(MessageTree.Node.class);
             MessageTree.Node node = (MessageTree.Node) result;
-            assertThat(node.message()).isEqualTo(msg);
+            assertThat(node.message()).isEqualTo(testMessage);
             assertThat(result.size()).isEqualTo(1);
         }
 
         @Test
         @DisplayName("Should ignore unknown messages when building tree")
         void shouldIgnoreUnknownMessagesWhenBuilding() {
-            List<LogMessage> messages = List.of(
+            // Given
+            List<LogMessage> mixedMessages = List.of(
                 new LogMessage.ValidMessage(MessageType.INFO, 10, "valid1"),
                 new LogMessage.Unknown("invalid message"),
                 new LogMessage.ValidMessage(MessageType.WARNING, 5, "valid2"),
@@ -73,8 +80,10 @@ class Exercise3Test {
                 new LogMessage.ValidMessage(MessageType.error(2), 15, "valid3")
             );
 
-            MessageTree result = exercise.build(messages);
+            // When
+            MessageTree result = exercise.build(mixedMessages);
 
+            // Then
             assertThat(result.size()).isEqualTo(3); // Only valid messages
             assertThat(result.isEmpty()).isFalse();
         }

@@ -133,8 +133,13 @@ class Exercise1Test {
             "E 50"
         })
         void shouldHandleUnknownMessages(String input) {
-            LogMessage result = exercise.parseMessage(input);
+            // Given
+            String malformedLogLine = input;
 
+            // When
+            LogMessage result = exercise.parseMessage(malformedLogLine);
+
+            // Then
             assertThat(result).isInstanceOf(LogMessage.Unknown.class);
             LogMessage.Unknown unknownMsg = (LogMessage.Unknown) result;
             assertThat(unknownMsg.originalMessage()).isEqualTo(input);
@@ -143,12 +148,17 @@ class Exercise1Test {
         @Test
         @DisplayName("Should handle edge cases for message parsing")
         void shouldHandleEdgeCases() {
-            // Test with extra whitespace
-            LogMessage result1 = exercise.parseMessage("I 123 message with extra spaces");
+            // Given
+            String messageWithSpaces = "I 123 message with extra spaces";
+            String messageWithoutContent = "W 456";
+
+            // When
+            LogMessage result1 = exercise.parseMessage(messageWithSpaces);
+            LogMessage result2 = exercise.parseMessage(messageWithoutContent);
+
+            // Then
             assertThat(result1).isInstanceOf(LogMessage.ValidMessage.class);
 
-            // Test with empty message content
-            LogMessage result2 = exercise.parseMessage("W 456");
             assertThat(result2).isInstanceOf(LogMessage.ValidMessage.class);
             LogMessage.ValidMessage validMsg = (LogMessage.ValidMessage) result2;
             assertThat(validMsg.message()).isEmpty();
@@ -195,14 +205,26 @@ class Exercise1Test {
         @Test
         @DisplayName("Should handle empty log content")
         void shouldHandleEmptyLogContent() {
-            List<LogMessage> result = exercise.parse("");
+            // Given
+            String emptyLogContent = "";
+
+            // When
+            List<LogMessage> result = exercise.parse(emptyLogContent);
+
+            // Then
             assertThat(result).isEmpty();
         }
 
         @Test
         @DisplayName("Should handle log with only whitespace")
         void shouldHandleWhitespaceOnlyLog() {
-            List<LogMessage> result = exercise.parse("   \n  \n  ");
+            // Given
+            String whitespaceOnlyContent = "   \n  \n  ";
+
+            // When
+            List<LogMessage> result = exercise.parse(whitespaceOnlyContent);
+
+            // Then
             assertThat(result).isEmpty();
         }
 

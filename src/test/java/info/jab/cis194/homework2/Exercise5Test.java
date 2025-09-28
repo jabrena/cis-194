@@ -41,25 +41,31 @@ class Exercise5Test {
         @Test
         @DisplayName("Should return empty list when no messages provided")
         void shouldReturnEmptyListWhenNoMessages() {
-            List<LogMessage> emptyMessages = List.of();
+            // Given
+            List<LogMessage> emptyMessageList = List.of();
 
-            List<String> result = exercise.whatWentWrong(emptyMessages);
+            // When
+            List<String> result = exercise.whatWentWrong(emptyMessageList);
 
+            // Then
             assertThat(result).isEmpty();
         }
 
         @Test
         @DisplayName("Should return empty list when no high-severity errors")
         void shouldReturnEmptyListWhenNoHighSeverityErrors() {
-            List<LogMessage> messages = List.of(
+            // Given
+            List<LogMessage> lowSeverityMessages = List.of(
                 new LogMessage.ValidMessage(MessageType.INFO, 1, "Info message"),
                 new LogMessage.ValidMessage(MessageType.WARNING, 2, "Warning message"),
                 new LogMessage.ValidMessage(MessageType.error(10), 3, "Low severity error"),
                 new LogMessage.ValidMessage(MessageType.error(49), 4, "Below threshold error")
             );
 
-            List<String> result = exercise.whatWentWrong(messages);
+            // When
+            List<String> result = exercise.whatWentWrong(lowSeverityMessages);
 
+            // Then
             assertThat(result).isEmpty();
         }
 
@@ -102,12 +108,15 @@ class Exercise5Test {
         @DisplayName("Should include errors with severity exactly at threshold")
         @ValueSource(ints = {50, 51, 60, 75, 90, 99, 100})
         void shouldIncludeErrorsAtOrAboveThreshold(int severity) {
-            List<LogMessage> messages = List.of(
+            // Given
+            List<LogMessage> highSeverityMessages = List.of(
                 new LogMessage.ValidMessage(MessageType.error(severity), 1, "Error at severity " + severity)
             );
 
-            List<String> result = exercise.whatWentWrong(messages);
+            // When
+            List<String> result = exercise.whatWentWrong(highSeverityMessages);
 
+            // Then
             assertThat(result).hasSize(1);
             assertThat(result.get(0)).isEqualTo("Error at severity " + severity);
         }
@@ -116,12 +125,15 @@ class Exercise5Test {
         @DisplayName("Should exclude errors with severity below threshold")
         @ValueSource(ints = {1, 10, 25, 40, 49})
         void shouldExcludeErrorsBelowThreshold(int severity) {
-            List<LogMessage> messages = List.of(
+            // Given
+            List<LogMessage> lowSeverityMessages = List.of(
                 new LogMessage.ValidMessage(MessageType.error(severity), 1, "Error at severity " + severity)
             );
 
-            List<String> result = exercise.whatWentWrong(messages);
+            // When
+            List<String> result = exercise.whatWentWrong(lowSeverityMessages);
 
+            // Then
             assertThat(result).isEmpty();
         }
 
