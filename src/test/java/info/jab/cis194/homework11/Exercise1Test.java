@@ -11,13 +11,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Tests for Exercise 1: Advanced Monadic Operations and Functional Composition
  *
- * This exercise focuses on implementing advanced monadic operations including
+ * <p>This test class verifies the implementation of advanced monadic operations including
  * monad transformers, functional composition patterns, and higher-order functions
  * that demonstrate deep understanding of functional programming concepts.
  *
- * Based on CIS-194 Week 11: Advanced Functional Programming Patterns
+ * <p>Test structure follows the Arrange-Act-Assert (AAA) pattern with clear
+ * Given-When-Then sections for maximum readability and maintainability.
+ *
+ * <p>Based on CIS-194 Week 11: Advanced Functional Programming Patterns
  */
-@DisplayName("Exercise 1: Advanced Monadic Operations")
+@DisplayName("Exercise 1: Advanced Monadic Operations and Functional Composition")
 class Exercise1Test {
 
     @Nested
@@ -25,100 +28,126 @@ class Exercise1Test {
     class MaybeMonadImplementation {
 
         @Test
-        @DisplayName("Should create Just value with pure")
-        void shouldCreateJustValueWithPure() {
+        @DisplayName("Should create Just value when using pure constructor")
+        void shouldCreateJustValueWhenUsingPureConstructor() {
             // Given
-            var value = 42;
+            Integer inputValue = 42;
 
             // When
-            var maybe = Exercise1.Maybe.pure(value);
+            Exercise1.Maybe<Integer> actualMaybe = Exercise1.Maybe.pure(inputValue);
 
             // Then
-            assertThat(maybe.isJust()).isTrue();
-            assertThat(maybe.getValue()).isEqualTo(42);
+            assertThat(actualMaybe.isJust())
+                .as("Maybe created with pure should be Just")
+                .isTrue();
+            assertThat(actualMaybe.getValue())
+                .as("Just value should contain the original input")
+                .isEqualTo(42);
         }
 
         @Test
-        @DisplayName("Should create Nothing value")
-        void shouldCreateNothingValue() {
+        @DisplayName("Should create Nothing value when using nothing constructor")
+        void shouldCreateNothingValueWhenUsingNothingConstructor() {
+            // Given - no input needed for Nothing
+
             // When
-            var maybe = Exercise1.Maybe.<Integer>nothing();
+            Exercise1.Maybe<Integer> actualMaybe = Exercise1.Maybe.<Integer>nothing();
 
             // Then
-            assertThat(maybe.isJust()).isFalse();
-            assertThat(maybe.isNothing()).isTrue();
+            assertThat(actualMaybe.isJust())
+                .as("Maybe created with nothing should not be Just")
+                .isFalse();
+            assertThat(actualMaybe.isNothing())
+                .as("Maybe created with nothing should be Nothing")
+                .isTrue();
         }
 
         @Test
-        @DisplayName("Should map over Just value")
-        void shouldMapOverJustValue() {
+        @DisplayName("Should apply function transformation when mapping over Just value")
+        void shouldApplyFunctionTransformationWhenMappingOverJustValue() {
             // Given
-            var maybe = Exercise1.Maybe.pure(10);
-            Function<Integer, String> f = x -> "Value: " + x;
+            Exercise1.Maybe<Integer> inputMaybe = Exercise1.Maybe.pure(10);
+            Function<Integer, String> transformationFunction = x -> "Value: " + x;
 
             // When
-            var result = maybe.fmap(f);
+            Exercise1.Maybe<String> actualResult = inputMaybe.fmap(transformationFunction);
 
             // Then
-            assertThat(result.isJust()).isTrue();
-            assertThat(result.getValue()).isEqualTo("Value: 10");
+            assertThat(actualResult.isJust())
+                .as("Mapping over Just should result in Just")
+                .isTrue();
+            assertThat(actualResult.getValue())
+                .as("Mapped value should be transformed by the function")
+                .isEqualTo("Value: 10");
         }
 
         @Test
-        @DisplayName("Should map over Nothing value")
-        void shouldMapOverNothingValue() {
+        @DisplayName("Should preserve Nothing when mapping over Nothing value")
+        void shouldPreserveNothingWhenMappingOverNothingValue() {
             // Given
-            var maybe = Exercise1.Maybe.<Integer>nothing();
-            Function<Integer, String> f = x -> "Value: " + x;
+            Exercise1.Maybe<Integer> inputMaybe = Exercise1.Maybe.<Integer>nothing();
+            Function<Integer, String> transformationFunction = x -> "Value: " + x;
 
             // When
-            var result = maybe.fmap(f);
+            Exercise1.Maybe<String> actualResult = inputMaybe.fmap(transformationFunction);
 
             // Then
-            assertThat(result.isNothing()).isTrue();
+            assertThat(actualResult.isNothing())
+                .as("Mapping over Nothing should preserve Nothing")
+                .isTrue();
         }
 
         @Test
-        @DisplayName("Should bind Just value with function returning Just")
-        void shouldBindJustValueWithFunctionReturningJust() {
+        @DisplayName("Should chain computations when binding Just value with function returning Just")
+        void shouldChainComputationsWhenBindingJustValueWithFunctionReturningJust() {
             // Given
-            var maybe = Exercise1.Maybe.pure(5);
-            Function<Integer, Exercise1.Maybe<String>> f = x -> Exercise1.Maybe.pure("Number: " + x);
+            Exercise1.Maybe<Integer> inputMaybe = Exercise1.Maybe.pure(5);
+            Function<Integer, Exercise1.Maybe<String>> monadicFunction =
+                x -> Exercise1.Maybe.pure("Number: " + x);
 
             // When
-            var result = maybe.bind(f);
+            Exercise1.Maybe<String> actualResult = inputMaybe.bind(monadicFunction);
 
             // Then
-            assertThat(result.isJust()).isTrue();
-            assertThat(result.getValue()).isEqualTo("Number: 5");
+            assertThat(actualResult.isJust())
+                .as("Binding Just with function returning Just should result in Just")
+                .isTrue();
+            assertThat(actualResult.getValue())
+                .as("Bound value should be the result of the monadic function")
+                .isEqualTo("Number: 5");
         }
 
         @Test
-        @DisplayName("Should bind Just value with function returning Nothing")
-        void shouldBindJustValueWithFunctionReturningNothing() {
+        @DisplayName("Should short-circuit to Nothing when binding Just value with function returning Nothing")
+        void shouldShortCircuitToNothingWhenBindingJustValueWithFunctionReturningNothing() {
             // Given
-            var maybe = Exercise1.Maybe.pure(5);
-            Function<Integer, Exercise1.Maybe<String>> f = x -> Exercise1.Maybe.nothing();
+            Exercise1.Maybe<Integer> inputMaybe = Exercise1.Maybe.pure(5);
+            Function<Integer, Exercise1.Maybe<String>> monadicFunction = x -> Exercise1.Maybe.nothing();
 
             // When
-            var result = maybe.bind(f);
+            Exercise1.Maybe<String> actualResult = inputMaybe.bind(monadicFunction);
 
             // Then
-            assertThat(result.isNothing()).isTrue();
+            assertThat(actualResult.isNothing())
+                .as("Binding Just with function returning Nothing should result in Nothing")
+                .isTrue();
         }
 
         @Test
-        @DisplayName("Should bind Nothing value")
-        void shouldBindNothingValue() {
+        @DisplayName("Should preserve Nothing when binding Nothing value with any function")
+        void shouldPreserveNothingWhenBindingNothingValueWithAnyFunction() {
             // Given
-            var maybe = Exercise1.Maybe.<Integer>nothing();
-            Function<Integer, Exercise1.Maybe<String>> f = x -> Exercise1.Maybe.pure("Number: " + x);
+            Exercise1.Maybe<Integer> inputMaybe = Exercise1.Maybe.<Integer>nothing();
+            Function<Integer, Exercise1.Maybe<String>> monadicFunction =
+                x -> Exercise1.Maybe.pure("Number: " + x);
 
             // When
-            var result = maybe.bind(f);
+            Exercise1.Maybe<String> actualResult = inputMaybe.bind(monadicFunction);
 
             // Then
-            assertThat(result.isNothing()).isTrue();
+            assertThat(actualResult.isNothing())
+                .as("Binding Nothing with any function should preserve Nothing")
+                .isTrue();
         }
     }
 
@@ -127,60 +156,68 @@ class Exercise1Test {
     class ListMonadImplementation {
 
         @Test
-        @DisplayName("Should create list with pure")
-        void shouldCreateListWithPure() {
+        @DisplayName("Should create singleton list when using pure constructor")
+        void shouldCreateSingletonListWhenUsingPureConstructor() {
             // Given
-            var value = 42;
+            Integer inputValue = 42;
 
             // When
-            var listMonad = Exercise1.ListMonad.pure(value);
+            Exercise1.ListMonad<Integer> actualListMonad = Exercise1.ListMonad.pure(inputValue);
 
             // Then
-            assertThat(listMonad.getValues()).containsExactly(42);
+            assertThat(actualListMonad.getValues())
+                .as("Pure should create a singleton list containing the input value")
+                .containsExactly(42);
         }
 
         @Test
-        @DisplayName("Should map over list values")
-        void shouldMapOverListValues() {
+        @DisplayName("Should transform all elements when mapping over list values")
+        void shouldTransformAllElementsWhenMappingOverListValues() {
             // Given
-            var listMonad = Exercise1.ListMonad.of(List.of(1, 2, 3));
-            Function<Integer, String> f = x -> "Item: " + x;
+            Exercise1.ListMonad<Integer> inputListMonad = Exercise1.ListMonad.of(List.of(1, 2, 3));
+            Function<Integer, String> transformationFunction = x -> "Item: " + x;
 
             // When
-            var result = listMonad.fmap(f);
+            Exercise1.ListMonad<String> actualResult = inputListMonad.fmap(transformationFunction);
 
             // Then
-            assertThat(result.getValues()).containsExactly("Item: 1", "Item: 2", "Item: 3");
+            assertThat(actualResult.getValues())
+                .as("Mapping should transform each element in order")
+                .containsExactly("Item: 1", "Item: 2", "Item: 3");
         }
 
         @Test
-        @DisplayName("Should bind list with function returning lists")
-        void shouldBindListWithFunctionReturningLists() {
+        @DisplayName("Should flatten nested lists when binding list with function returning lists")
+        void shouldFlattenNestedListsWhenBindingListWithFunctionReturningLists() {
             // Given
-            var listMonad = Exercise1.ListMonad.of(List.of(1, 2, 3));
-            Function<Integer, Exercise1.ListMonad<String>> f = x ->
+            Exercise1.ListMonad<Integer> inputListMonad = Exercise1.ListMonad.of(List.of(1, 2, 3));
+            Function<Integer, Exercise1.ListMonad<String>> monadicFunction = x ->
                 Exercise1.ListMonad.of(List.of("a" + x, "b" + x));
 
             // When
-            var result = listMonad.bind(f);
+            Exercise1.ListMonad<String> actualResult = inputListMonad.bind(monadicFunction);
 
             // Then
-            assertThat(result.getValues()).containsExactly("a1", "b1", "a2", "b2", "a3", "b3");
+            assertThat(actualResult.getValues())
+                .as("Binding should apply function to each element and flatten the results")
+                .containsExactly("a1", "b1", "a2", "b2", "a3", "b3");
         }
 
         @Test
-        @DisplayName("Should handle empty list in bind")
-        void shouldHandleEmptyListInBind() {
+        @DisplayName("Should return empty list when binding empty list with any function")
+        void shouldReturnEmptyListWhenBindingEmptyListWithAnyFunction() {
             // Given
-            var listMonad = Exercise1.ListMonad.of(List.<Integer>of());
-            Function<Integer, Exercise1.ListMonad<String>> f = x ->
+            Exercise1.ListMonad<Integer> inputListMonad = Exercise1.ListMonad.of(List.<Integer>of());
+            Function<Integer, Exercise1.ListMonad<String>> monadicFunction = x ->
                 Exercise1.ListMonad.of(List.of("a" + x, "b" + x));
 
             // When
-            var result = listMonad.bind(f);
+            Exercise1.ListMonad<String> actualResult = inputListMonad.bind(monadicFunction);
 
             // Then
-            assertThat(result.getValues()).isEmpty();
+            assertThat(actualResult.getValues())
+                .as("Binding empty list should result in empty list")
+                .isEmpty();
         }
     }
 
@@ -189,60 +226,72 @@ class Exercise1Test {
     class FunctionComposition {
 
         @Test
-        @DisplayName("Should compose two functions")
-        void shouldComposeTwoFunctions() {
+        @DisplayName("Should compose two functions in mathematical order (g ∘ f)")
+        void shouldComposeTwoFunctionsInMathematicalOrder() {
             // Given
-            Function<Integer, Integer> f = x -> x * 2;
-            Function<Integer, String> g = x -> "Result: " + x;
+            Function<Integer, Integer> firstFunction = x -> x * 2;
+            Function<Integer, String> secondFunction = x -> "Result: " + x;
 
             // When
-            var composed = Exercise1.compose(g, f);
-            var result = composed.apply(5);
+            Function<Integer, String> actualComposedFunction = Exercise1.compose(secondFunction, firstFunction);
+            String actualResult = actualComposedFunction.apply(5);
 
             // Then
-            assertThat(result).isEqualTo("Result: 10");
+            assertThat(actualResult)
+                .as("Compose should apply first function then second function")
+                .isEqualTo("Result: 10");
         }
 
         @Test
-        @DisplayName("Should compose multiple functions with pipe")
-        void shouldComposeMultipleFunctionsWithPipe() {
+        @DisplayName("Should create pipeline when composing multiple functions with pipe")
+        void shouldCreatePipelineWhenComposingMultipleFunctionsWithPipe() {
             // Given
-            Function<Integer, Integer> addTen = x -> x + 10;
-            Function<Integer, Integer> multiplyByTwo = x -> x * 2;
-            Function<Integer, String> toString = x -> "Value: " + x;
+            Function<Integer, Integer> addTenFunction = x -> x + 10;
+            Function<Integer, Integer> multiplyByTwoFunction = x -> x * 2;
+            Function<Integer, String> toStringFunction = x -> "Value: " + x;
 
             // When
-            var pipeline = Exercise1.pipe(addTen, multiplyByTwo, toString);
-            var result = pipeline.apply(5);
+            Function<Integer, String> actualPipeline = Exercise1.pipe(addTenFunction, multiplyByTwoFunction, toStringFunction);
+            String actualResult = actualPipeline.apply(5);
 
             // Then
-            assertThat(result).isEqualTo("Value: 30");
+            assertThat(actualResult)
+                .as("Pipeline should apply functions in sequence: (5 + 10) * 2 = 30, then 'Value: 30'")
+                .isEqualTo("Value: 30");
         }
 
         @Test
-        @DisplayName("Should apply function multiple times")
-        void shouldApplyFunctionMultipleTimes() {
+        @DisplayName("Should apply function specified number of times when count is positive")
+        void shouldApplyFunctionSpecifiedNumberOfTimesWhenCountIsPositive() {
             // Given
-            Function<Integer, Integer> addOne = x -> x + 1;
+            Function<Integer, Integer> incrementFunction = x -> x + 1;
+            int applicationCount = 3;
+            Integer initialValue = 10;
 
             // When
-            var result = Exercise1.applyN(addOne, 3, 10);
+            Integer actualResult = Exercise1.applyN(incrementFunction, applicationCount, initialValue);
 
             // Then
-            assertThat(result).isEqualTo(13);
+            assertThat(actualResult)
+                .as("Function applied 3 times should increment by 3: 10 + 1 + 1 + 1 = 13")
+                .isEqualTo(13);
         }
 
         @Test
-        @DisplayName("Should apply function zero times")
-        void shouldApplyFunctionZeroTimes() {
+        @DisplayName("Should return original value when applying function zero times")
+        void shouldReturnOriginalValueWhenApplyingFunctionZeroTimes() {
             // Given
-            Function<Integer, Integer> addOne = x -> x + 1;
+            Function<Integer, Integer> incrementFunction = x -> x + 1;
+            int applicationCount = 0;
+            Integer initialValue = 10;
 
             // When
-            var result = Exercise1.applyN(addOne, 0, 10);
+            Integer actualResult = Exercise1.applyN(incrementFunction, applicationCount, initialValue);
 
             // Then
-            assertThat(result).isEqualTo(10);
+            assertThat(actualResult)
+                .as("Function applied 0 times should return original value")
+                .isEqualTo(10);
         }
     }
 
@@ -251,55 +300,69 @@ class Exercise1Test {
     class KleisliComposition {
 
         @Test
-        @DisplayName("Should compose Kleisli arrows for Maybe")
-        void shouldComposeKleisliArrowsForMaybe() {
+        @DisplayName("Should compose monadic functions successfully when both succeed")
+        void shouldComposeMonadicFunctionsSuccessfullyWhenBothSucceed() {
             // Given
-            Function<Integer, Exercise1.Maybe<Integer>> f = x ->
+            Function<Integer, Exercise1.Maybe<Integer>> firstMonadicFunction = x ->
                 x > 0 ? Exercise1.Maybe.pure(x * 2) : Exercise1.Maybe.nothing();
-            Function<Integer, Exercise1.Maybe<String>> g = x ->
+            Function<Integer, Exercise1.Maybe<String>> secondMonadicFunction = x ->
                 x < 100 ? Exercise1.Maybe.pure("Result: " + x) : Exercise1.Maybe.nothing();
+            Integer inputValue = 10;
 
             // When
-            var composed = Exercise1.kleisliCompose(g, f);
-            var result = composed.apply(10);
+            Function<Integer, Exercise1.Maybe<String>> actualComposedFunction =
+                Exercise1.kleisliCompose(secondMonadicFunction, firstMonadicFunction);
+            Exercise1.Maybe<String> actualResult = actualComposedFunction.apply(inputValue);
 
             // Then
-            assertThat(result.isJust()).isTrue();
-            assertThat(result.getValue()).isEqualTo("Result: 20");
+            assertThat(actualResult.isJust())
+                .as("Kleisli composition should succeed when both functions succeed")
+                .isTrue();
+            assertThat(actualResult.getValue())
+                .as("Result should be from applying both functions: 10 * 2 = 20, then 'Result: 20'")
+                .isEqualTo("Result: 20");
         }
 
         @Test
-        @DisplayName("Should handle failure in first Kleisli arrow")
-        void shouldHandleFailureInFirstKleisliArrow() {
+        @DisplayName("Should short-circuit to Nothing when first monadic function fails")
+        void shouldShortCircuitToNothingWhenFirstMonadicFunctionFails() {
             // Given
-            Function<Integer, Exercise1.Maybe<Integer>> f = x ->
+            Function<Integer, Exercise1.Maybe<Integer>> firstMonadicFunction = x ->
                 x > 0 ? Exercise1.Maybe.pure(x * 2) : Exercise1.Maybe.nothing();
-            Function<Integer, Exercise1.Maybe<String>> g = x ->
+            Function<Integer, Exercise1.Maybe<String>> secondMonadicFunction = x ->
                 x < 100 ? Exercise1.Maybe.pure("Result: " + x) : Exercise1.Maybe.nothing();
+            Integer inputValue = -5;
 
             // When
-            var composed = Exercise1.kleisliCompose(g, f);
-            var result = composed.apply(-5);
+            Function<Integer, Exercise1.Maybe<String>> actualComposedFunction =
+                Exercise1.kleisliCompose(secondMonadicFunction, firstMonadicFunction);
+            Exercise1.Maybe<String> actualResult = actualComposedFunction.apply(inputValue);
 
             // Then
-            assertThat(result.isNothing()).isTrue();
+            assertThat(actualResult.isNothing())
+                .as("Kleisli composition should fail when first function returns Nothing")
+                .isTrue();
         }
 
         @Test
-        @DisplayName("Should handle failure in second Kleisli arrow")
-        void shouldHandleFailureInSecondKleisliArrow() {
+        @DisplayName("Should short-circuit to Nothing when second monadic function fails")
+        void shouldShortCircuitToNothingWhenSecondMonadicFunctionFails() {
             // Given
-            Function<Integer, Exercise1.Maybe<Integer>> f = x ->
+            Function<Integer, Exercise1.Maybe<Integer>> firstMonadicFunction = x ->
                 x > 0 ? Exercise1.Maybe.pure(x * 200) : Exercise1.Maybe.nothing();
-            Function<Integer, Exercise1.Maybe<String>> g = x ->
+            Function<Integer, Exercise1.Maybe<String>> secondMonadicFunction = x ->
                 x < 100 ? Exercise1.Maybe.pure("Result: " + x) : Exercise1.Maybe.nothing();
+            Integer inputValue = 10;
 
             // When
-            var composed = Exercise1.kleisliCompose(g, f);
-            var result = composed.apply(10);
+            Function<Integer, Exercise1.Maybe<String>> actualComposedFunction =
+                Exercise1.kleisliCompose(secondMonadicFunction, firstMonadicFunction);
+            Exercise1.Maybe<String> actualResult = actualComposedFunction.apply(inputValue);
 
             // Then
-            assertThat(result.isNothing()).isTrue();
+            assertThat(actualResult.isNothing())
+                .as("Kleisli composition should fail when second function returns Nothing (10 * 200 = 2000 > 100)")
+                .isTrue();
         }
     }
 
@@ -308,69 +371,81 @@ class Exercise1Test {
     class MonadicUtilities {
 
         @Test
-        @DisplayName("Should sequence Maybe values with all Just")
-        void shouldSequenceMaybeValuesWithAllJust() {
+        @DisplayName("Should collect all values when sequencing list of all Just values")
+        void shouldCollectAllValuesWhenSequencingListOfAllJustValues() {
             // Given
-            var maybes = List.of(
+            List<Exercise1.Maybe<Integer>> inputMaybes = List.of(
                 Exercise1.Maybe.pure(1),
                 Exercise1.Maybe.pure(2),
                 Exercise1.Maybe.pure(3)
             );
 
             // When
-            var result = Exercise1.sequenceMaybe(maybes);
+            Exercise1.Maybe<List<Integer>> actualResult = Exercise1.sequenceMaybe(inputMaybes);
 
             // Then
-            assertThat(result.isJust()).isTrue();
-            assertThat(result.getValue()).containsExactly(1, 2, 3);
+            assertThat(actualResult.isJust())
+                .as("Sequencing all Just values should result in Just")
+                .isTrue();
+            assertThat(actualResult.getValue())
+                .as("Sequenced result should contain all values in order")
+                .containsExactly(1, 2, 3);
         }
 
         @Test
-        @DisplayName("Should sequence Maybe values with one Nothing")
-        void shouldSequenceMaybeValuesWithOneNothing() {
+        @DisplayName("Should return Nothing when sequencing list containing any Nothing value")
+        void shouldReturnNothingWhenSequencingListContainingAnyNothingValue() {
             // Given
-            var maybes = List.of(
+            List<Exercise1.Maybe<Integer>> inputMaybes = List.of(
                 Exercise1.Maybe.pure(1),
                 Exercise1.Maybe.<Integer>nothing(),
                 Exercise1.Maybe.pure(3)
             );
 
             // When
-            var result = Exercise1.sequenceMaybe(maybes);
+            Exercise1.Maybe<List<Integer>> actualResult = Exercise1.sequenceMaybe(inputMaybes);
 
             // Then
-            assertThat(result.isNothing()).isTrue();
+            assertThat(actualResult.isNothing())
+                .as("Sequencing list with any Nothing should result in Nothing")
+                .isTrue();
         }
 
         @Test
-        @DisplayName("Should traverse list with function returning Maybe")
-        void shouldTraverseListWithFunctionReturningMaybe() {
+        @DisplayName("Should return Nothing when traversing list with function that fails for any element")
+        void shouldReturnNothingWhenTraversingListWithFunctionThatFailsForAnyElement() {
             // Given
-            var numbers = List.of(1, 2, 3, 4);
-            Function<Integer, Exercise1.Maybe<String>> f = x ->
+            List<Integer> inputNumbers = List.of(1, 2, 3, 4);
+            Function<Integer, Exercise1.Maybe<String>> monadicFunction = x ->
                 x <= 3 ? Exercise1.Maybe.pure("Item: " + x) : Exercise1.Maybe.nothing();
 
             // When
-            var result = Exercise1.traverseMaybe(numbers, f);
+            Exercise1.Maybe<List<String>> actualResult = Exercise1.traverseMaybe(inputNumbers, monadicFunction);
 
             // Then
-            assertThat(result.isNothing()).isTrue();
+            assertThat(actualResult.isNothing())
+                .as("Traversing should fail when function returns Nothing for any element (4 > 3)")
+                .isTrue();
         }
 
         @Test
-        @DisplayName("Should traverse list successfully with all valid values")
-        void shouldTraverseListSuccessfullyWithAllValidValues() {
+        @DisplayName("Should collect transformed values when traversing list with function that succeeds for all elements")
+        void shouldCollectTransformedValuesWhenTraversingListWithFunctionThatSucceedsForAllElements() {
             // Given
-            var numbers = List.of(1, 2, 3);
-            Function<Integer, Exercise1.Maybe<String>> f = x ->
+            List<Integer> inputNumbers = List.of(1, 2, 3);
+            Function<Integer, Exercise1.Maybe<String>> monadicFunction = x ->
                 x <= 3 ? Exercise1.Maybe.pure("Item: " + x) : Exercise1.Maybe.nothing();
 
             // When
-            var result = Exercise1.traverseMaybe(numbers, f);
+            Exercise1.Maybe<List<String>> actualResult = Exercise1.traverseMaybe(inputNumbers, monadicFunction);
 
             // Then
-            assertThat(result.isJust()).isTrue();
-            assertThat(result.getValue()).containsExactly("Item: 1", "Item: 2", "Item: 3");
+            assertThat(actualResult.isJust())
+                .as("Traversing should succeed when function succeeds for all elements")
+                .isTrue();
+            assertThat(actualResult.getValue())
+                .as("Traversed result should contain all transformed values in order")
+                .containsExactly("Item: 1", "Item: 2", "Item: 3");
         }
     }
 }
