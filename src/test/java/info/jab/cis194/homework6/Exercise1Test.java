@@ -1,10 +1,11 @@
 package info.jab.cis194.homework6;
 
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Test class for Exercise 1: Fibonacci numbers
@@ -12,55 +13,101 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  * This exercise focuses on implementing fibonacci numbers using lazy evaluation.
  * We want to create an infinite stream of fibonacci numbers where each number
  * is computed only when needed.
+ *
+ * Tests follow Given-When-Then structure and use AssertJ for fluent assertions.
  */
+@DisplayName("Exercise 1: Fibonacci Numbers Tests")
 public class Exercise1Test {
 
-    @Test
-    public void testFibonacciFirst10Numbers() {
-        Exercise1 exercise = new Exercise1();
+    private Exercise1 exercise;
 
-        // Test first 10 fibonacci numbers: 0, 1, 1, 2, 3, 5, 8, 13, 21, 34
-        long[] expected = {0, 1, 1, 2, 3, 5, 8, 13, 21, 34};
+    @BeforeEach
+    void setUp() {
+        exercise = new Exercise1();
+    }
 
-        for (int i = 0; i < expected.length; i++) {
-            assertEquals(expected[i], exercise.fibonacci(i),
-                "Fibonacci number at index " + i + " should be " + expected[i]);
+    @Nested
+    @DisplayName("Fibonacci Number Generation")
+    class FibonacciNumberGeneration {
+
+        @Test
+        @DisplayName("Should generate first 10 fibonacci numbers correctly")
+        public void should_generateFirst10FibonacciNumbers_when_indexesFrom0To9Provided() {
+            // Given
+            long[] expectedFibonacciNumbers = {0, 1, 1, 2, 3, 5, 8, 13, 21, 34};
+
+            // When & Then
+            for (int i = 0; i < expectedFibonacciNumbers.length; i++) {
+                long actualFibonacci = exercise.fibonacci(i);
+
+                assertThat(actualFibonacci)
+                    .as("Fibonacci number at index %d should be %d", i, expectedFibonacciNumbers[i])
+                    .isEqualTo(expectedFibonacciNumbers[i]);
+            }
+        }
+
+        @Test
+        @DisplayName("Should generate larger fibonacci numbers correctly")
+        public void should_generateLargerFibonacciNumbers_when_higherIndexesProvided() {
+            // Given
+            int index10 = 10;
+            int index11 = 11;
+            int index12 = 12;
+            int index20 = 20;
+
+            // When
+            long fibonacci10 = exercise.fibonacci(index10);
+            long fibonacci11 = exercise.fibonacci(index11);
+            long fibonacci12 = exercise.fibonacci(index12);
+            long fibonacci20 = exercise.fibonacci(index20);
+
+            // Then
+            assertThat(fibonacci10).isEqualTo(55);
+            assertThat(fibonacci11).isEqualTo(89);
+            assertThat(fibonacci12).isEqualTo(144);
+            assertThat(fibonacci20).isEqualTo(6765);
         }
     }
 
-    @Test
-    public void testFibonacciLargerNumbers() {
-        Exercise1 exercise = new Exercise1();
+    @Nested
+    @DisplayName("Fibonacci Stream Operations")
+    class FibonacciStreamOperations {
 
-        // Test some larger fibonacci numbers
-        assertEquals(55, exercise.fibonacci(10));
-        assertEquals(89, exercise.fibonacci(11));
-        assertEquals(144, exercise.fibonacci(12));
-        assertEquals(6765, exercise.fibonacci(20));
-    }
+        @Test
+        @DisplayName("Should generate fibonacci stream with correct first 5 numbers")
+        public void should_generateFibonacciStream_when_limitedTo5Elements() {
+            // Given
+            long[] expectedFirst5 = {0, 1, 1, 2, 3};
 
-    @Test
-    public void testFibonacciStream() {
-        Exercise1 exercise = new Exercise1();
+            // When
+            long[] actualFirst5 = exercise.fibonacciStream()
+                .limit(5)
+                .toArray();
 
-        // Test that we can get a stream of fibonacci numbers
-        long[] first5 = exercise.fibonacciStream().limit(5).toArray();
-        long[] expected = {0, 1, 1, 2, 3};
+            // Then
+            assertThat(actualFirst5)
+                .as("First 5 fibonacci numbers from stream should match expected sequence")
+                .isEqualTo(expectedFirst5);
+        }
 
-        assertArrayEquals(expected, first5, "First 5 fibonacci numbers from stream should match expected");
-    }
+        @Test
+        @DisplayName("Should demonstrate lazy evaluation of fibonacci stream")
+        public void should_demonstrateLazyEvaluation_when_fibonacciStreamCreated() {
+            // Given
+            // No specific setup needed for lazy evaluation test
 
-    @Test
-    public void testFibonacciStreamLaziness() {
-        Exercise1 exercise = new Exercise1();
+            // When
+            var fibonacciStream = exercise.fibonacciStream();
+            long firstFibonacci = fibonacciStream.findFirst().orElse(-1);
 
-        // Test that the stream is truly lazy - we should be able to create it
-        // without computing all values immediately
-        var stream = exercise.fibonacciStream();
-        assertNotNull(stream, "Fibonacci stream should not be null");
+            // Then
+            assertThat(fibonacciStream)
+                .as("Fibonacci stream should not be null")
+                .isNotNull();
 
-        // Take just the first element
-        long first = stream.findFirst().orElse(-1);
-        assertEquals(0, first, "First fibonacci number should be 0");
+            assertThat(firstFibonacci)
+                .as("First fibonacci number should be 0")
+                .isEqualTo(0);
+        }
     }
 }
