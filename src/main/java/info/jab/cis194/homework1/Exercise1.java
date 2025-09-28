@@ -33,7 +33,7 @@ public class Exercise1 {
                            var reversed = List.copyOf(list);
                            return IntStream.range(0, reversed.size())
                                           .mapToObj(i -> reversed.get(reversed.size() - 1 - i))
-                                          .collect(Collectors.toUnmodifiableList());
+                                          .toList();
                        }
                    ));
     }
@@ -47,7 +47,7 @@ public class Exercise1 {
         return n < 0 ? List.of() :
                n == 0 ? List.of(0) :
                generateDigitsStream(n)
-                   .collect(Collectors.toUnmodifiableList());
+                   .toList();
     }
 
     /**
@@ -76,7 +76,7 @@ public class Exercise1 {
                        .mapToObj(i -> shouldDouble(i, startIndex) ?
                                      digits.get(i) * 2 :
                                      digits.get(i))
-                       .collect(Collectors.toUnmodifiableList());
+                       .toList();
     }
 
     /**
