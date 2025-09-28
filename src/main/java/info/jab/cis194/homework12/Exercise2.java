@@ -31,17 +31,17 @@ public class Exercise2 {
         private final int size;
 
         private Army(int size) {
-            if (size <= 0) {
-                throw new IllegalArgumentException("Army size must be positive, got: " + size);
+            if (size < 0) {
+                throw new IllegalArgumentException("Army size cannot be negative, got: " + size);
             }
             this.size = size;
         }
 
         /**
          * Create an Army with the specified size
-         * @param size the army size (must be positive)
+         * @param size the army size (must be non-negative)
          * @return new Army instance
-         * @throws IllegalArgumentException if size is not positive
+         * @throws IllegalArgumentException if size is negative
          */
         public static Army of(int size) {
             return new Army(size);
@@ -58,7 +58,7 @@ public class Exercise2 {
         /**
          * Create a new Army with losses applied
          * @param losses the number of units lost
-         * @return new Army with reduced size
+         * @return new Army with reduced size (can be 0 for eliminated army)
          * @throws IllegalArgumentException if losses exceed army size
          */
         public Army withLosses(int losses) {

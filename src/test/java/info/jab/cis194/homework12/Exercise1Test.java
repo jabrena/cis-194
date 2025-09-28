@@ -13,9 +13,9 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import static info.jab.cis194.homework12.Exercise1.DieValue.of;
-import static info.jab.cis194.homework12.ATTACKER_WINS;
+import static info.jab.cis194.homework12.Exercise1.BattleResult.ATTACKER_WINS;
 import static info.jab.cis194.homework12.Exercise1.BattleResult.DEFENDER_WINS;
+import static info.jab.cis194.homework12.Exercise1.DieValue.of;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -237,9 +237,9 @@ class Exercise1Test {
                 Arguments.of(of(2), of(1), ATTACKER_WINS),
 
                 // Defender wins (equal or higher roll)
-                Arguments.of(of(3), of(3), Exercise1.BattleResult.DEFENDER_WINS),
-                Arguments.of(of(2), of(4), Exercise1.BattleResult.DEFENDER_WINS),
-                Arguments.of(of(1), of(6), Exercise1.BattleResult.DEFENDER_WINS)
+                Arguments.of(of(3), of(3), DEFENDER_WINS),
+                Arguments.of(of(2), of(4), DEFENDER_WINS),
+                Arguments.of(of(1), of(6), DEFENDER_WINS)
             );
         }
 
