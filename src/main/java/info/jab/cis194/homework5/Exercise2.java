@@ -511,7 +511,7 @@ public class Exercise2 {
             return List.of(element);
         }
 
-        OrdInstance<T> ord = getOrdInstance((Class<T>) element.getClass());
+        Ord<T> ord = getOrdInstance((Class<T>) element.getClass());
 
         // Find the insertion point
         int insertionIndex = IntStream.range(0, sortedList.size())
