@@ -25,8 +25,9 @@ public class Exercise1 {
 
     /**
      * Expression interface representing the abstract syntax tree
+     * Sealed to restrict implementations to LitExpr, AddExpr, and MulExpr
      */
-    public interface Expr {
+    public sealed interface Expr permits LitExpr, AddExpr, MulExpr {
         <T> T accept(ExprVisitor<T> visitor);
     }
 
@@ -42,11 +43,15 @@ public class Exercise1 {
     /**
      * Literal expression implementation
      */
-    private static class LitExpr implements Expr {
+    public static final class LitExpr implements Expr {
         private final int value;
 
         public LitExpr(int value) {
             this.value = value;
+        }
+
+        public int getValue() {
+            return value;
         }
 
         @Override
@@ -76,13 +81,21 @@ public class Exercise1 {
     /**
      * Addition expression implementation
      */
-    private static class AddExpr implements Expr {
+    public static final class AddExpr implements Expr {
         private final Expr left;
         private final Expr right;
 
         public AddExpr(Expr left, Expr right) {
             this.left = Objects.requireNonNull(left, "Left expression cannot be null");
             this.right = Objects.requireNonNull(right, "Right expression cannot be null");
+        }
+
+        public Expr getLeft() {
+            return left;
+        }
+
+        public Expr getRight() {
+            return right;
         }
 
         @Override
@@ -112,13 +125,21 @@ public class Exercise1 {
     /**
      * Multiplication expression implementation
      */
-    private static class MulExpr implements Expr {
+    public static final class MulExpr implements Expr {
         private final Expr left;
         private final Expr right;
 
         public MulExpr(Expr left, Expr right) {
             this.left = Objects.requireNonNull(left, "Left expression cannot be null");
             this.right = Objects.requireNonNull(right, "Right expression cannot be null");
+        }
+
+        public Expr getLeft() {
+            return left;
+        }
+
+        public Expr getRight() {
+            return right;
         }
 
         @Override
