@@ -13,7 +13,6 @@
     <!-- Properties -->
     <properties>
         <!-- Core build properties -->
-        <!-- Updated to Java 25 - sealed classes and all modern Java features supported -->
         <java.version>25</java.version>
         <maven.version>3.9.10</maven.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
