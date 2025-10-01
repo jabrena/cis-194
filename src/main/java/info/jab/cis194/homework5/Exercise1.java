@@ -25,8 +25,9 @@ public class Exercise1 {
 
     /**
      * Expression interface representing the abstract syntax tree
+     * Sealed to restrict implementations to LitExpr, AddExpr, and MulExpr
      */
-    public interface Expr {
+    public sealed interface Expr permits LitExpr, AddExpr, MulExpr {
         <T> T accept(ExprVisitor<T> visitor);
     }
 
@@ -40,31 +41,13 @@ public class Exercise1 {
     }
 
     /**
-     * Literal expression implementation
+     * Literal expression implementation using Java record
+     * Records provide automatic equals, hashCode, toString, and accessor methods
      */
-    private static class LitExpr implements Expr {
-        private final int value;
-
-        public LitExpr(int value) {
-            this.value = value;
-        }
-
+    public static record LitExpr(int value) implements Expr {
         @Override
         public <T> T accept(ExprVisitor<T> visitor) {
             return visitor.visitLit(value);
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (this == obj) return true;
-            if (obj == null || getClass() != obj.getClass()) return false;
-            LitExpr litExpr = (LitExpr) obj;
-            return value == litExpr.value;
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(value);
         }
 
         @Override
@@ -74,33 +57,18 @@ public class Exercise1 {
     }
 
     /**
-     * Addition expression implementation
+     * Addition expression implementation using Java record
+     * Records provide automatic equals, hashCode, toString, and accessor methods
      */
-    private static class AddExpr implements Expr {
-        private final Expr left;
-        private final Expr right;
-
-        public AddExpr(Expr left, Expr right) {
-            this.left = Objects.requireNonNull(left, "Left expression cannot be null");
-            this.right = Objects.requireNonNull(right, "Right expression cannot be null");
+    public static record AddExpr(Expr left, Expr right) implements Expr {
+        public AddExpr {
+            Objects.requireNonNull(left, "Left expression cannot be null");
+            Objects.requireNonNull(right, "Right expression cannot be null");
         }
 
         @Override
         public <T> T accept(ExprVisitor<T> visitor) {
             return visitor.visitAdd(left, right);
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (this == obj) return true;
-            if (obj == null || getClass() != obj.getClass()) return false;
-            AddExpr addExpr = (AddExpr) obj;
-            return Objects.equals(left, addExpr.left) && Objects.equals(right, addExpr.right);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(left, right);
         }
 
         @Override
@@ -110,33 +78,18 @@ public class Exercise1 {
     }
 
     /**
-     * Multiplication expression implementation
+     * Multiplication expression implementation using Java record
+     * Records provide automatic equals, hashCode, toString, and accessor methods
      */
-    private static class MulExpr implements Expr {
-        private final Expr left;
-        private final Expr right;
-
-        public MulExpr(Expr left, Expr right) {
-            this.left = Objects.requireNonNull(left, "Left expression cannot be null");
-            this.right = Objects.requireNonNull(right, "Right expression cannot be null");
+    public static record MulExpr(Expr left, Expr right) implements Expr {
+        public MulExpr {
+            Objects.requireNonNull(left, "Left expression cannot be null");
+            Objects.requireNonNull(right, "Right expression cannot be null");
         }
 
         @Override
         public <T> T accept(ExprVisitor<T> visitor) {
             return visitor.visitMul(left, right);
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (this == obj) return true;
-            if (obj == null || getClass() != obj.getClass()) return false;
-            MulExpr mulExpr = (MulExpr) obj;
-            return Objects.equals(left, mulExpr.left) && Objects.equals(right, mulExpr.right);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(left, right);
         }
 
         @Override
