@@ -13,6 +13,8 @@
     <!-- Properties -->
     <properties>
         <!-- Core build properties -->
+        <!-- TODO: Update to Java 25 when available in deployment environment -->
+        <!-- Sealed classes are compatible with Java 17+ and work with Java 25 -->
         <java.version>21</java.version>
         <maven.version>3.9.10</maven.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
