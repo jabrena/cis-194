@@ -64,33 +64,12 @@ public class Exercise2 {
         String show(T value);
     }
 
-    // Sealed hierarchy for type class instances using records
+    // Type class instances
 
     /**
-     * Sealed interface for Eq instances - restricts which types can have Eq instances
+     * Eq instance for Integer
      */
-    public sealed interface EqInstance<T> extends Eq<T>
-        permits IntegerEqInstance, StringEqInstance, PointEqInstance {
-    }
-
-    /**
-     * Sealed interface for Ord instances - restricts which types can have Ord instances
-     */
-    public sealed interface OrdInstance<T> extends Ord<T>
-        permits IntegerOrdInstance, StringOrdInstance, PointOrdInstance {
-    }
-
-    /**
-     * Sealed interface for Show instances - restricts which types can have Show instances
-     */
-    public sealed interface ShowInstance<T> extends Show<T>
-        permits IntegerShowInstance, StringShowInstance, PointShowInstance {
-    }
-
-    /**
-     * Integer Eq instance using record
-     */
-    public static record IntegerEqInstance() implements EqInstance<Integer> {
+    private static final Eq<Integer> INTEGER_EQ = new Eq<Integer>() {
         @Override
         public boolean eq(Integer a, Integer b) {
             if (a == null || b == null) {
@@ -98,12 +77,12 @@ public class Exercise2 {
             }
             return a.equals(b);
         }
-    }
+    };
 
     /**
-     * Integer Ord instance using record
+     * Ord instance for Integer
      */
-    public static record IntegerOrdInstance() implements OrdInstance<Integer> {
+    private static final Ord<Integer> INTEGER_ORD = new Ord<Integer>() {
         @Override
         public int compare(Integer a, Integer b) {
             if (a == null || b == null) {
@@ -111,12 +90,12 @@ public class Exercise2 {
             }
             return a.compareTo(b);
         }
-    }
+    };
 
     /**
-     * Integer Show instance using record
+     * Show instance for Integer
      */
-    public static record IntegerShowInstance() implements ShowInstance<Integer> {
+    private static final Show<Integer> INTEGER_SHOW = new Show<Integer>() {
         @Override
         public String show(Integer value) {
             if (value == null) {
@@ -124,12 +103,12 @@ public class Exercise2 {
             }
             return value.toString();
         }
-    }
+    };
 
     /**
-     * String Eq instance using record
+     * Eq instance for String
      */
-    public static record StringEqInstance() implements EqInstance<String> {
+    private static final Eq<String> STRING_EQ = new Eq<String>() {
         @Override
         public boolean eq(String a, String b) {
             if (a == null || b == null) {
@@ -137,12 +116,12 @@ public class Exercise2 {
             }
             return a.equals(b);
         }
-    }
+    };
 
     /**
-     * String Ord instance using record
+     * Ord instance for String
      */
-    public static record StringOrdInstance() implements OrdInstance<String> {
+    private static final Ord<String> STRING_ORD = new Ord<String>() {
         @Override
         public int compare(String a, String b) {
             if (a == null || b == null) {
@@ -150,12 +129,12 @@ public class Exercise2 {
             }
             return a.compareTo(b);
         }
-    }
+    };
 
     /**
-     * String Show instance using record
+     * Show instance for String
      */
-    public static record StringShowInstance() implements ShowInstance<String> {
+    private static final Show<String> STRING_SHOW = new Show<String>() {
         @Override
         public String show(String value) {
             if (value == null) {
@@ -163,16 +142,7 @@ public class Exercise2 {
             }
             return "\"" + value + "\"";
         }
-    }
-
-    // Singleton instances for better performance and immutability
-    private static final EqInstance<Integer> INTEGER_EQ = new IntegerEqInstance();
-    private static final OrdInstance<Integer> INTEGER_ORD = new IntegerOrdInstance();
-    private static final ShowInstance<Integer> INTEGER_SHOW = new IntegerShowInstance();
-
-    private static final EqInstance<String> STRING_EQ = new StringEqInstance();
-    private static final OrdInstance<String> STRING_ORD = new StringOrdInstance();
-    private static final ShowInstance<String> STRING_SHOW = new StringShowInstance();
+    };
 
     // Point class and its type class instances
 
@@ -194,9 +164,9 @@ public class Exercise2 {
     }
 
     /**
-     * Point Eq instance using record
+     * Eq instance for Point
      */
-    public static record PointEqInstance() implements EqInstance<Point> {
+    private static final Eq<Point> POINT_EQ = new Eq<Point>() {
         @Override
         public boolean eq(Point a, Point b) {
             if (a == null || b == null) {
@@ -204,12 +174,12 @@ public class Exercise2 {
             }
             return a.equals(b);
         }
-    }
+    };
 
     /**
-     * Point Ord instance using record (lexicographic ordering)
+     * Ord instance for Point (lexicographic ordering)
      */
-    public static record PointOrdInstance() implements OrdInstance<Point> {
+    private static final Ord<Point> POINT_ORD = new Ord<Point>() {
         @Override
         public int compare(Point a, Point b) {
             if (a == null || b == null) {
@@ -221,12 +191,12 @@ public class Exercise2 {
             }
             return Integer.compare(a.y(), b.y());
         }
-    }
+    };
 
     /**
-     * Point Show instance using record
+     * Show instance for Point
      */
-    public static record PointShowInstance() implements ShowInstance<Point> {
+    private static final Show<Point> POINT_SHOW = new Show<Point>() {
         @Override
         public String show(Point value) {
             if (value == null) {
@@ -234,12 +204,7 @@ public class Exercise2 {
             }
             return "Point(" + value.x() + ", " + value.y() + ")";
         }
-    }
-
-    // Singleton instances for Point
-    private static final EqInstance<Point> POINT_EQ = new PointEqInstance();
-    private static final OrdInstance<Point> POINT_ORD = new PointOrdInstance();
-    private static final ShowInstance<Point> POINT_SHOW = new PointShowInstance();
+    };
 
     // Generic type class methods
 
@@ -252,7 +217,7 @@ public class Exercise2 {
             throw new IllegalArgumentException("Arguments cannot be null");
         }
 
-        EqInstance<T> eq = getEqInstance((Class<T>) a.getClass());
+        Eq<T> eq = getEqInstance((Class<T>) a.getClass());
         return eq.eq(a, b);
     }
 
@@ -272,7 +237,7 @@ public class Exercise2 {
             throw new IllegalArgumentException("Arguments cannot be null");
         }
 
-        OrdInstance<T> ord = getOrdInstance((Class<T>) a.getClass());
+        Ord<T> ord = getOrdInstance((Class<T>) a.getClass());
         return ord.lt(a, b);
     }
 
@@ -285,7 +250,7 @@ public class Exercise2 {
             throw new IllegalArgumentException("Arguments cannot be null");
         }
 
-        OrdInstance<T> ord = getOrdInstance((Class<T>) a.getClass());
+        Ord<T> ord = getOrdInstance((Class<T>) a.getClass());
         return ord.lte(a, b);
     }
 
@@ -298,7 +263,7 @@ public class Exercise2 {
             throw new IllegalArgumentException("Arguments cannot be null");
         }
 
-        OrdInstance<T> ord = getOrdInstance((Class<T>) a.getClass());
+        Ord<T> ord = getOrdInstance((Class<T>) a.getClass());
         return ord.gt(a, b);
     }
 
@@ -311,7 +276,7 @@ public class Exercise2 {
             throw new IllegalArgumentException("Arguments cannot be null");
         }
 
-        OrdInstance<T> ord = getOrdInstance((Class<T>) a.getClass());
+        Ord<T> ord = getOrdInstance((Class<T>) a.getClass());
         return ord.gte(a, b);
     }
 
@@ -324,46 +289,46 @@ public class Exercise2 {
             throw new IllegalArgumentException("Value cannot be null");
         }
 
-        ShowInstance<T> show = getShowInstance((Class<T>) value.getClass());
+        Show<T> show = getShowInstance((Class<T>) value.getClass());
         return show.show(value);
     }
 
     // Helper methods to get type class instances
 
     @SuppressWarnings("unchecked")
-    private static <T> EqInstance<T> getEqInstance(Class<T> clazz) {
+    private static <T> Eq<T> getEqInstance(Class<T> clazz) {
         if (clazz == Integer.class) {
-            return (EqInstance<T>) INTEGER_EQ;
+            return (Eq<T>) INTEGER_EQ;
         } else if (clazz == String.class) {
-            return (EqInstance<T>) STRING_EQ;
+            return (Eq<T>) STRING_EQ;
         } else if (clazz == Point.class) {
-            return (EqInstance<T>) POINT_EQ;
+            return (Eq<T>) POINT_EQ;
         } else {
             throw new UnsupportedOperationException("No Eq instance for " + clazz.getSimpleName());
         }
     }
 
     @SuppressWarnings("unchecked")
-    private static <T> OrdInstance<T> getOrdInstance(Class<T> clazz) {
+    private static <T> Ord<T> getOrdInstance(Class<T> clazz) {
         if (clazz == Integer.class) {
-            return (OrdInstance<T>) INTEGER_ORD;
+            return (Ord<T>) INTEGER_ORD;
         } else if (clazz == String.class) {
-            return (OrdInstance<T>) STRING_ORD;
+            return (Ord<T>) STRING_ORD;
         } else if (clazz == Point.class) {
-            return (OrdInstance<T>) POINT_ORD;
+            return (Ord<T>) POINT_ORD;
         } else {
             throw new UnsupportedOperationException("No Ord instance for " + clazz.getSimpleName());
         }
     }
 
     @SuppressWarnings("unchecked")
-    private static <T> ShowInstance<T> getShowInstance(Class<T> clazz) {
+    private static <T> Show<T> getShowInstance(Class<T> clazz) {
         if (clazz == Integer.class) {
-            return (ShowInstance<T>) INTEGER_SHOW;
+            return (Show<T>) INTEGER_SHOW;
         } else if (clazz == String.class) {
-            return (ShowInstance<T>) STRING_SHOW;
+            return (Show<T>) STRING_SHOW;
         } else if (clazz == Point.class) {
-            return (ShowInstance<T>) POINT_SHOW;
+            return (Show<T>) POINT_SHOW;
         } else {
             throw new UnsupportedOperationException("No Show instance for " + clazz.getSimpleName());
         }
@@ -383,7 +348,7 @@ public class Exercise2 {
         return list.stream()
             .reduce((a, b) -> {
                 @SuppressWarnings("unchecked")
-                OrdInstance<T> ord = getOrdInstance((Class<T>) a.getClass());
+                Ord<T> ord = getOrdInstance((Class<T>) a.getClass());
                 return ord.gt(a, b) ? a : b;
             });
     }
@@ -400,7 +365,7 @@ public class Exercise2 {
         return list.stream()
             .sorted((a, b) -> {
                 @SuppressWarnings("unchecked")
-                OrdInstance<T> ord = getOrdInstance((Class<T>) a.getClass());
+                Ord<T> ord = getOrdInstance((Class<T>) a.getClass());
                 return ord.compare(a, b);
             })
             .toList();
@@ -418,7 +383,7 @@ public class Exercise2 {
             throw new IllegalArgumentException("List cannot be null");
         }
 
-        EqInstance<T> eq = getEqInstance((Class<T>) element.getClass());
+        Eq<T> eq = getEqInstance((Class<T>) element.getClass());
 
         return list.stream()
             .anyMatch(item -> eq.eq(element, item));
@@ -438,7 +403,7 @@ public class Exercise2 {
                 new ArrayList<T>(),
                 (acc, element) -> {
                     @SuppressWarnings("unchecked")
-                    EqInstance<T> eq = getEqInstance((Class<T>) element.getClass());
+                    Eq<T> eq = getEqInstance((Class<T>) element.getClass());
 
                     boolean alreadyExists = acc.stream()
                         .anyMatch(existing -> eq.eq(element, existing));
@@ -502,7 +467,7 @@ public class Exercise2 {
         return list.stream()
             .reduce((a, b) -> {
                 @SuppressWarnings("unchecked")
-                OrdInstance<T> ord = getOrdInstance((Class<T>) a.getClass());
+                Ord<T> ord = getOrdInstance((Class<T>) a.getClass());
                 return ord.lt(a, b) ? a : b;
             });
     }
@@ -525,7 +490,7 @@ public class Exercise2 {
                 T current = list.get(i);
                 T next = list.get(i + 1);
                 @SuppressWarnings("unchecked")
-                OrdInstance<T> ord = getOrdInstance((Class<T>) current.getClass());
+                Ord<T> ord = getOrdInstance((Class<T>) current.getClass());
                 return ord.lte(current, next);
             });
     }
