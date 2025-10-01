@@ -16,44 +16,42 @@ import java.util.function.Predicate;
  */
 public class Exercise3 {
 
-    // Maybe type - represents optional values
+    // Maybe type - represents optional values using sealed classes
 
     /**
-     * Maybe type representing optional values
+     * Maybe type representing optional values using sealed interface
+     * Sealed to restrict implementations to Just and Nothing only
      */
-    public static abstract class Maybe<T> {
-
-        private Maybe() {} // Prevent external subclassing
+    public sealed interface Maybe<T> permits Just, Nothing {
 
         /**
          * Check if this Maybe contains a value
          */
-        public abstract boolean isJust();
+        boolean isJust();
 
         /**
          * Check if this Maybe is empty
          */
-        public abstract boolean isNothing();
+        boolean isNothing();
 
         /**
          * Get the value if present, throw exception otherwise
          */
-        public abstract T get();
+        T get();
 
         /**
          * Apply a visitor pattern
          */
-        public abstract <R> R accept(MaybeVisitor<T, R> visitor);
+        <R> R accept(MaybeVisitor<T, R> visitor);
     }
 
     /**
-     * Just case - contains a value
+     * Just case - contains a value using record
+     * Records provide automatic equals, hashCode, toString, and accessor methods
      */
-    private static class Just<T> extends Maybe<T> {
-        private final T value;
-
-        public Just(T value) {
-            this.value = Objects.requireNonNull(value, "Just value cannot be null");
+    public static record Just<T>(T value) implements Maybe<T> {
+        public Just {
+            Objects.requireNonNull(value, "Just value cannot be null");
         }
 
         @Override
@@ -77,28 +75,16 @@ public class Exercise3 {
         }
 
         @Override
-        public boolean equals(Object obj) {
-            if (this == obj) return true;
-            if (obj == null || getClass() != obj.getClass()) return false;
-            Just<?> just = (Just<?>) obj;
-            return Objects.equals(value, just.value);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(value);
-        }
-
-        @Override
         public String toString() {
             return "Just(" + value + ")";
         }
     }
 
     /**
-     * Nothing case - empty value
+     * Nothing case - empty value using record
+     * Records provide automatic equals, hashCode, toString, and accessor methods
      */
-    private static class Nothing<T> extends Maybe<T> {
+    public static record Nothing<T>() implements Maybe<T> {
 
         @Override
         public boolean isJust() {
@@ -118,16 +104,6 @@ public class Exercise3 {
         @Override
         public <R> R accept(MaybeVisitor<T, R> visitor) {
             return visitor.visitNothing();
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            return obj instanceof Nothing;
-        }
-
-        @Override
-        public int hashCode() {
-            return 0;
         }
 
         @Override
