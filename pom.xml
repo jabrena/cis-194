@@ -20,7 +20,7 @@
 
         <!-- Dependency versions -->
         <junit.version>6.0.0</junit.version>
-        <assertj.version>3.26.3</assertj.version>
+        <assertj.version>3.27.6</assertj.version>
 
         <!-- Maven plugin versions -->
         <maven-plugin-compiler.version>3.14.1</maven-plugin-compiler.version>
