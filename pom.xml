@@ -25,7 +25,7 @@
         <!-- Maven plugin versions -->
         <maven-plugin-compiler.version>3.14.1</maven-plugin-compiler.version>
         <maven-plugin-surefire.version>3.5.4</maven-plugin-surefire.version>
-        <maven-plugin-failsafe.version>3.5.3</maven-plugin-failsafe.version>
+        <maven-plugin-failsafe.version>3.5.4</maven-plugin-failsafe.version>
         <maven-plugin-enforcer.version>3.6.2</maven-plugin-enforcer.version>
         <maven-plugin-clean.version>3.4.0</maven-plugin-clean.version>
         <maven-plugin-resources.version>3.3.1</maven-plugin-resources.version>
